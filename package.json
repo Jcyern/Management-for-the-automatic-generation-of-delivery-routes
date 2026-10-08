@@ -1,0 +1,25 @@
+{
+  "name": "management-for-the-automatic-generation-of-delivery-routes",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jcyern/Management-for-the-automatic-generation-of-delivery-routes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jcyern/Management-for-the-automatic-generation-of-delivery-routes/issues"
+  },
+  "homepage": "https://github.com/Jcyern/Management-for-the-automatic-generation-of-delivery-routes#readme",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  }
+}
