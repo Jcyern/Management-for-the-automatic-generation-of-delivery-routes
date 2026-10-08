@@ -18,8 +18,18 @@
   "homepage": "https://github.com/Jcyern/Management-for-the-automatic-generation-of-delivery-routes#readme",
   "description": "",
   "devDependencies": {
-    "@types/node": "^26.6.4",
+    "@types/node": "^24.19.1",
+    "dotenv": "^18.0.6",
+    "prisma": "^6.19.3",
     "ts-node": "^10.9.2",
-    "typescript": "^7.0.2"
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true
   }
 }
