@@ -13,3 +13,22 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+model Pedido {
+  id Int @id @default(autoincrement())
+  prioridad String
+  tipoEntrega String
+  zona String 
+}
+model CentroDeDistribucion {
+  id Int @id @default(autoincrement())
+  nombre String 
+  programaLogistico String
+
+}
+
+model Ruta {
+  id Int @id @default(autoincrement())
+  
+}
