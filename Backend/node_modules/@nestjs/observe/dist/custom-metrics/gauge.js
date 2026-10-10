@@ -1,0 +1,189 @@
+import { admitsSeries, stringifyLabel } from "./counter.js";
+const DEFAULT_LABEL = "default";
+export class Gauge {
+    /**
+     * Whether the series cap has already been reported. An object rather than a
+     * bare field so `admitsSeries` can set it - a `private` member is not
+     * assignable to the structural type such a helper can name.
+     */
+    seriesLimit = { warned: false };
+    /**
+     * The name of the gauge.
+     * This should be a descriptive name that identifies the gauge.
+     * For example, "memory_usage" or "active_users".
+     */
+    name;
+    /**
+     * The type of the custom metric.
+     * This is always 'gauge' for this class.
+     * It indicates that this metric is a gauge that can be incremented.
+     */
+    type;
+    /**
+     * A brief description of the gauge's purpose.
+     * This can be used to provide additional context about what the gauge represents.
+     * For example, "Current memory usage in bytes" or "Number of active users in the system".
+     */
+    description;
+    /**
+     * The value of the gauge.
+     */
+    value;
+    /**
+     * Optional labels for the gauge.
+     * Labels are key-value pairs that can be used to add additional context to the gauge.
+     * For example, you might use labels to indicate the environment (e.g., "production", "development") or the service (e.g., "user-service", "order-service").
+     */
+    labels;
+    /**
+     * Optional kind for gauge metrics.
+     */
+    kind;
+    _tags;
+    _onChange;
+    _initialValue = 0;
+    _lastUpdated = Date.now();
+    /**
+     * Gets the timestamp of when the gauge was last updated.
+     * This is a Unix timestamp in milliseconds.
+     * @returns The last updated timestamp.
+     */
+    get lastUpdated() {
+        return this._lastUpdated;
+    }
+    /**
+     * Gets tags associated with the gauge.
+     * Tags are key-value pairs that provide additional context about the gauge.
+     * @returns An object containing tags, or undefined if no tags are set.
+     */
+    get tags() {
+        return this._tags;
+    }
+    /**
+     * Sets tags for the gauge.
+     * Tags are key-value pairs that provide additional context about the gauge.
+     * @param tags An object containing tags to set.
+     */
+    set tags(tags) {
+        if (tags && typeof tags !== "object") {
+            throw new Error("Tags must be an object with key-value pairs.");
+        }
+        this._tags = tags;
+    }
+    constructor(name, attributes) {
+        this.name = name;
+        this.description = attributes?.description;
+        this.kind = attributes?.kind;
+        this.type = "gauge";
+        this._initialValue = attributes?.initialValue ?? 0;
+        // Optional, like every other read of `attributes`. Without this the
+        // single-argument overload the class advertises - `new Gauge("name")` -
+        // threw "Cannot read properties of undefined".
+        this.labels = attributes?.labels;
+        this.value = {
+            [DEFAULT_LABEL]: this._initialValue,
+        };
+    }
+    getValue(label) {
+        if (this.labels && !label) {
+            throw new Error("Cannot get value of a gauge with labels without specifying a label. For example, use `gauge.getValue({ route: '/login' })`.");
+        }
+        else if (this.labels && label) {
+            this.validateLabels(label);
+            const stringifiedLabel = stringifyLabel(label);
+            // Presence, not truthiness: a gauge legitimately sitting at 0 is the most
+            // common reading there is, and `!0` made it indistinguishable from a label
+            // that was never recorded.
+            if (!(stringifiedLabel in this.value)) {
+                throw new Error(`Label "${stringifiedLabel}" does not exist in the gauge. Available labels: ${Object.keys(this.value).join(", ")}.`);
+            }
+            return this.value[stringifiedLabel];
+        }
+        else {
+            return this.value[DEFAULT_LABEL];
+        }
+    }
+    increment(labelOrValue, value) {
+        if (this.labels && typeof labelOrValue !== "object") {
+            throw new Error("Cannot increment a gauge with labels without specifying a label. For example, use `gauge.increment({ route: '/login' })`.");
+        }
+        if (typeof labelOrValue === "object") {
+            this.validateLabels(labelOrValue);
+            const stringifiedLabel = stringifyLabel(labelOrValue);
+            if (!admitsSeries(this.name, this.value, stringifiedLabel, this.seriesLimit)) {
+                return;
+            }
+            const incrementValue = value ?? 1;
+            this.value[stringifiedLabel] =
+                (this.value[stringifiedLabel] ?? this._initialValue) + incrementValue;
+        }
+        else {
+            const incrementValue = labelOrValue ?? 1;
+            this.value[DEFAULT_LABEL] =
+                (this.value[DEFAULT_LABEL] ?? this._initialValue) + incrementValue;
+        }
+        this._lastUpdated = Date.now();
+        if (this._onChange) {
+            this._onChange(this);
+        }
+    }
+    decrement(labelOrValue, value) {
+        if (this.labels && typeof labelOrValue !== "object") {
+            throw new Error("Cannot decrement a gauge with labels without specifying a label. For example, use `gauge.decrement({ route: '/login' })`.");
+        }
+        else if (typeof labelOrValue === "object") {
+            this.validateLabels(labelOrValue);
+            const stringifiedLabel = stringifyLabel(labelOrValue);
+            if (!admitsSeries(this.name, this.value, stringifiedLabel, this.seriesLimit)) {
+                return;
+            }
+            const decrementValue = value ?? 1;
+            this.value[stringifiedLabel] =
+                (this.value[stringifiedLabel] ?? this._initialValue) - decrementValue;
+        }
+        else {
+            const decrementValue = labelOrValue ?? 1;
+            this.value[DEFAULT_LABEL] =
+                (this.value[DEFAULT_LABEL] ?? this._initialValue) - decrementValue;
+        }
+        this._lastUpdated = Date.now();
+        if (this._onChange) {
+            this._onChange(this);
+        }
+    }
+    setValue(labelOrValue, value) {
+        if (this.labels && typeof labelOrValue !== "object") {
+            throw new Error("Cannot set value of a gauge with labels without specifying a label. For example, use `gauge.setValue({ route: '/login' }, 42)`.");
+        }
+        else if (typeof labelOrValue === "object") {
+            this.validateLabels(labelOrValue);
+            const stringifiedLabel = stringifyLabel(labelOrValue);
+            if (!(stringifiedLabel in this.value)) {
+                throw new Error(`Label "${stringifiedLabel}" does not exist in the gauge. Available labels: ${Object.keys(this.value).join(", ")}.`);
+            }
+            this.value[stringifiedLabel] = value ?? this._initialValue;
+        }
+        else {
+            // A gauge starts at 0 by default, so the truthiness check here rejected
+            // the very first `setValue` on almost every gauge - with a message that
+            // named the label it claimed was missing among the available ones.
+            if (!(DEFAULT_LABEL in this.value)) {
+                throw new Error(`Default label "${DEFAULT_LABEL}" does not exist in the gauge. Available labels: ${Object.keys(this.value).join(", ")}.`);
+            }
+            this.value[DEFAULT_LABEL] = labelOrValue ?? this._initialValue;
+        }
+        this._lastUpdated = Date.now();
+        if (this._onChange) {
+            this._onChange(this);
+        }
+    }
+    validateLabels(labeledValue) {
+        const keys = Object.keys(labeledValue);
+        const declared = this.labels;
+        declared?.forEach((label) => {
+            if (!keys.includes(label)) {
+                throw new Error(`Label "${label}" is not defined in the gauge. Available labels: ${declared.join(", ")}.`);
+            }
+        });
+    }
+}

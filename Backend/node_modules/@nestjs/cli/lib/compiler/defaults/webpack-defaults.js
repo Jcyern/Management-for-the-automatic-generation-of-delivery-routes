@@ -1,0 +1,145 @@
+import { readFileSync } from 'fs';
+import { createRequire } from 'module';
+import { join } from 'path';
+import { defaultTsconfigFilename } from '../../configuration/defaults.js';
+import { appendTsExtension } from '../helpers/append-extension.js';
+const require = createRequire(import.meta.url);
+/**
+ * Wraps a `require` of an optional webpack dependency so a missing package
+ * reports the install command instead of a raw MODULE_NOT_FOUND. Every
+ * optional webpack dependency must be loaded through here — they are declared
+ * as optional peers, so any unguarded `require` surfaces as a bare crash.
+ */
+function withInstallAdvice(load) {
+    try {
+        return load();
+    }
+    catch (e) {
+        if (e?.code !== 'MODULE_NOT_FOUND' && e?.code !== 'ERR_MODULE_NOT_FOUND') {
+            // Only the "package missing" branch is wrapped with install advice.
+            // Surfacing unrelated errors as "package not found" would mislead
+            // users into reinstalling perfectly valid dependencies.
+            throw e;
+        }
+        // Use a non-greedy match so error messages that contain multiple
+        // quoted paths (e.g. ESM "Cannot find package 'foo' imported from
+        // '/abs/path.mjs'") still extract the package name rather than the
+        // importing file path.
+        const pkg = e?.message?.match?.(/Cannot find.*?'([^']+)'/)?.[1] ?? 'webpack';
+        throw new Error(`The "${pkg}" package is required when using the webpack compiler but could not be found. ` +
+            `Please install it:\n\n  npm install --save-dev webpack webpack-node-externals tsconfig-paths-webpack-plugin ts-loader fork-ts-checker-webpack-plugin\n`, { cause: e });
+    }
+}
+function loadWebpackDeps() {
+    return withInstallAdvice(() => {
+        const wp = require('webpack');
+        const externals = require('webpack-node-externals');
+        const { TsconfigPathsPlugin } = require('tsconfig-paths-webpack-plugin');
+        return { webpack: wp, nodeExternals: externals, TsconfigPathsPlugin };
+    });
+}
+function getBaseUrl(tsConfigFile) {
+    try {
+        const { compilerOptions } = JSON.parse(readFileSync(tsConfigFile, 'utf8'));
+        return compilerOptions?.baseUrl ?? '.';
+    }
+    catch {
+        return '.';
+    }
+}
+export const webpackDefaultsFactory = (sourceRoot, relativeSourceRoot, entryFilename, isDebugEnabled = false, tsConfigFile = defaultTsconfigFilename, plugins) => {
+    const { webpack: wp, nodeExternals: externals, TsconfigPathsPlugin, } = loadWebpackDeps();
+    const isPluginRegistered = isAnyPluginRegistered(plugins);
+    const webpackConfiguration = {
+        entry: appendTsExtension(join(sourceRoot, entryFilename)),
+        devtool: isDebugEnabled ? 'inline-source-map' : false,
+        target: 'node',
+        output: {
+            filename: join(relativeSourceRoot, `${entryFilename}.js`).replace(/\\/g, '/'),
+            library: { type: 'commonjs2' },
+        },
+        ignoreWarnings: [/^(?!CriticalDependenciesWarning$)/],
+        externals: [externals()],
+        externalsPresets: { node: true },
+        module: {
+            rules: [
+                {
+                    test: /.tsx?$/,
+                    use: [
+                        {
+                            loader: 'ts-loader',
+                            options: {
+                                transpileOnly: !isPluginRegistered,
+                                configFile: tsConfigFile,
+                                getCustomTransformers: (program) => ({
+                                    before: plugins.beforeHooks.map((hook) => hook(program)),
+                                    after: plugins.afterHooks.map((hook) => hook(program)),
+                                    afterDeclarations: plugins.afterDeclarationsHooks.map((hook) => hook(program)),
+                                }),
+                            },
+                        },
+                    ],
+                    exclude: /node_modules/,
+                },
+            ],
+        },
+        resolve: {
+            extensions: ['.tsx', '.ts', '.js'],
+            plugins: [
+                new TsconfigPathsPlugin({
+                    configFile: tsConfigFile,
+                    baseUrl: getBaseUrl(tsConfigFile),
+                }),
+            ],
+        },
+        mode: 'none',
+        optimization: {
+            nodeEnv: false,
+        },
+        node: {
+            __filename: false,
+            __dirname: false,
+        },
+        plugins: [
+            new wp.IgnorePlugin({
+                checkResource(resource) {
+                    const lazyImports = [
+                        '@nestjs/microservices',
+                        '@nestjs/microservices/microservices-module',
+                        '@nestjs/websockets/socket-module',
+                        'class-validator',
+                        'class-transformer',
+                        'class-transformer/storage',
+                    ];
+                    if (!lazyImports.includes(resource)) {
+                        return false;
+                    }
+                    try {
+                        require.resolve(resource, {
+                            paths: [process.cwd()],
+                        });
+                    }
+                    catch {
+                        return true;
+                    }
+                    return false;
+                },
+            }),
+        ],
+    };
+    if (!isPluginRegistered) {
+        const ForkTsCheckerWebpackPlugin = withInstallAdvice(() => require('fork-ts-checker-webpack-plugin'));
+        webpackConfiguration.plugins.push(new ForkTsCheckerWebpackPlugin({
+            typescript: {
+                configFile: tsConfigFile,
+            },
+        }));
+    }
+    return webpackConfiguration;
+};
+function isAnyPluginRegistered(plugins) {
+    return ((plugins.afterHooks && plugins.afterHooks.length > 0) ||
+        (plugins.beforeHooks && plugins.beforeHooks.length > 0) ||
+        (plugins.afterDeclarationsHooks &&
+            plugins.afterDeclarationsHooks.length > 0));
+}

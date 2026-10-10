@@ -1,0 +1,44 @@
+import * as fs from 'fs';
+import { NpmPackageManager } from './npm.package-manager.js';
+import { PackageManager } from './package-manager.js';
+import { YarnPackageManager } from './yarn.package-manager.js';
+import { PnpmPackageManager } from './pnpm.package-manager.js';
+import { BunPackageManager } from './bun.package-manager.js';
+export class PackageManagerFactory {
+    static create(name) {
+        switch (name) {
+            case PackageManager.NPM:
+                return new NpmPackageManager();
+            case PackageManager.YARN:
+                return new YarnPackageManager();
+            case PackageManager.PNPM:
+                return new PnpmPackageManager();
+            case PackageManager.BUN:
+                return new BunPackageManager();
+            default:
+                throw new Error(`Package manager ${name} is not managed.`);
+        }
+    }
+    static async find() {
+        const DEFAULT_PACKAGE_MANAGER = PackageManager.NPM;
+        try {
+            const files = await fs.promises.readdir(process.cwd());
+            const hasYarnLockFile = files.includes('yarn.lock');
+            if (hasYarnLockFile) {
+                return this.create(PackageManager.YARN);
+            }
+            const hasPnpmLockFile = files.includes('pnpm-lock.yaml');
+            if (hasPnpmLockFile) {
+                return this.create(PackageManager.PNPM);
+            }
+            const hasBunLockFile = ['bun.lock', 'bun.lockb'].some((lockFile) => files.includes(lockFile));
+            if (hasBunLockFile) {
+                return this.create(PackageManager.BUN);
+            }
+            return this.create(DEFAULT_PACKAGE_MANAGER);
+        }
+        catch {
+            return this.create(DEFAULT_PACKAGE_MANAGER);
+        }
+    }
+}

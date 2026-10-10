@@ -1,0 +1,201 @@
+import { blue, bold, green, red, yellow } from 'ansis';
+import { readFileSync } from 'fs';
+import { createRequire } from 'module';
+import { platform, release } from 'os';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { PackageManagerFactory, } from '../lib/package-managers/index.js';
+import { BANNER, MESSAGES } from '../lib/ui/index.js';
+import osName from '../lib/utils/os-info.utils.js';
+import { AbstractAction } from './abstract.action.js';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
+export class InfoAction extends AbstractAction {
+    manager;
+    // Nest dependencies whitelist used to compare the major version
+    warningMessageDependenciesWhiteList = [
+        '@nestjs/core',
+        '@nestjs/common',
+        '@nestjs/schematics',
+        '@nestjs/platform-express',
+        '@nestjs/platform-fastify',
+        '@nestjs/platform-socket.io',
+        '@nestjs/platform-ws',
+        '@nestjs/websockets',
+    ];
+    async handle() {
+        this.manager = await PackageManagerFactory.find();
+        this.displayBanner();
+        await this.displaySystemInformation();
+        await this.displayNestInformation();
+    }
+    displayBanner() {
+        console.info(red(BANNER));
+    }
+    async displaySystemInformation() {
+        console.info(green `[System Information]`);
+        console.info('OS Version     :', blue(osName(platform(), release()) + ' ' + release()));
+        console.info('NodeJS Version :', blue(process.version));
+        await this.displayPackageManagerVersion();
+    }
+    async displayPackageManagerVersion() {
+        try {
+            const version = await this.manager.version();
+            console.info(`${this.manager.name} Version    :`, blue(version), '\n');
+        }
+        catch {
+            console.error(`${this.manager.name} Version    :`, red `Unknown`, '\n');
+        }
+    }
+    async displayNestInformation() {
+        this.displayCliVersion();
+        console.info(green `[Nest Platform Information]`);
+        await this.displayNestInformationFromPackage();
+    }
+    async displayNestInformationFromPackage() {
+        try {
+            const dependencies = this.readProjectPackageDependencies();
+            this.displayNestVersions(dependencies);
+        }
+        catch {
+            console.error(red(MESSAGES.NEST_INFORMATION_PACKAGE_MANAGER_FAILED));
+        }
+    }
+    displayCliVersion() {
+        console.info(green `[Nest CLI]`);
+        console.info('Nest CLI Version :', blue(JSON.parse(readFileSync(join(__dirname, '../package.json')).toString())
+            .version), '\n');
+    }
+    readProjectPackageDependencies() {
+        const buffer = readFileSync(join(process.cwd(), 'package.json'));
+        const pack = JSON.parse(buffer.toString());
+        const dependencies = { ...pack.dependencies, ...pack.devDependencies };
+        Object.keys(dependencies).forEach((key) => {
+            dependencies[key] = {
+                version: dependencies[key],
+            };
+        });
+        return dependencies;
+    }
+    displayNestVersions(dependencies) {
+        const nestDependencies = this.buildNestVersionsMessage(dependencies);
+        if (nestDependencies.length === 0) {
+            // No @nestjs/* packages declared in this package.json. Surfacing this
+            // explicitly is much more useful than letting `format([])` throw and
+            // showing the generic "cannot read your project package.json" error,
+            // which is misleading when the file was actually read successfully.
+            console.info('No @nestjs/* dependencies were found in package.json.');
+            return;
+        }
+        nestDependencies.forEach((dependency) => console.info(dependency.name, blue(dependency.value)));
+        this.displayWarningMessage(nestDependencies);
+    }
+    displayWarningMessage(nestDependencies) {
+        try {
+            const warnings = this.buildNestVersionsWarningMessage(nestDependencies);
+            const majorVersions = Object.keys(warnings);
+            if (majorVersions.length > 0) {
+                console.info('\r');
+                console.info(yellow `[Warnings]`);
+                console.info('The following packages are not in the same major version');
+                console.info('This could lead to runtime errors');
+                majorVersions.forEach((version) => {
+                    console.info(bold `* Under version ${version}`);
+                    warnings[version].forEach(({ packageName, value }) => {
+                        console.info(`- ${packageName} ${value}`);
+                    });
+                });
+            }
+        }
+        catch {
+            console.info('\t');
+            console.error(red(MESSAGES.NEST_INFORMATION_PACKAGE_WARNING_FAILED(this.warningMessageDependenciesWhiteList)));
+        }
+    }
+    buildNestVersionsWarningMessage(nestDependencies) {
+        const unsortedWarnings = nestDependencies.reduce((depWarningsGroup, { name, packageName, value }) => {
+            if (!this.warningMessageDependenciesWhiteList.includes(packageName)) {
+                return depWarningsGroup;
+            }
+            const [major] = value.replace(/[^\d.]/g, '').split('.', 1);
+            const minimumVersion = major;
+            depWarningsGroup[minimumVersion] = [
+                ...(depWarningsGroup[minimumVersion] || []),
+                { name, packageName, value },
+            ];
+            return depWarningsGroup;
+        }, Object.create(null));
+        const unsortedMinorVersions = Object.keys(unsortedWarnings);
+        if (unsortedMinorVersions.length <= 1) {
+            return {};
+        }
+        const sortedMinorVersions = unsortedMinorVersions.sort((versionA, versionB) => {
+            const numA = parseFloat(versionA);
+            const numB = parseFloat(versionB);
+            if (isNaN(numA) && isNaN(numB)) {
+                // If both are not valid numbers, maintain the current order.
+                return 0;
+            }
+            // NaN is considered greater than any number, so if numA is NaN, place it later.
+            return isNaN(numA) ? 1 : isNaN(numB) ? -1 : numB - numA;
+        });
+        return sortedMinorVersions.reduce((warnings, minorVersion) => {
+            warnings[minorVersion] = unsortedWarnings[minorVersion];
+            return warnings;
+        }, Object.create(null));
+    }
+    buildNestVersionsMessage(dependencies) {
+        const nestDependencies = this.collectNestDependencies(dependencies);
+        return this.format(nestDependencies);
+    }
+    collectNestDependencies(dependencies) {
+        const nestDependencies = [];
+        Object.keys(dependencies).forEach((key) => {
+            if (key.indexOf('@nestjs') > -1) {
+                nestDependencies.push({
+                    name: `${key.replace(/@nestjs\//, '').replace(/@.*/, '')} version`,
+                    value: this.readInstalledVersion(key) ?? dependencies[key].version,
+                    packageName: key,
+                });
+            }
+        });
+        return nestDependencies;
+    }
+    /**
+     * Reads the installed version of a package, or returns undefined when it
+     * cannot be determined (package not installed, or its "exports" map does
+     * not expose "./package.json" — as with @nestjs/* v12+).
+     */
+    readInstalledVersion(packageName) {
+        let depPackagePath;
+        try {
+            depPackagePath = require.resolve(packageName + '/package.json', {
+                paths: [process.cwd()],
+            });
+        }
+        catch {
+            depPackagePath = join(process.cwd(), 'node_modules', packageName, 'package.json');
+        }
+        try {
+            return JSON.parse(readFileSync(depPackagePath).toString()).version;
+        }
+        catch {
+            return undefined;
+        }
+    }
+    format(dependencies) {
+        if (dependencies.length === 0) {
+            return dependencies;
+        }
+        const sorted = dependencies.sort((dependencyA, dependencyB) => dependencyB.name.length - dependencyA.name.length);
+        const length = sorted[0].name.length;
+        sorted.forEach((dependency) => {
+            dependency.name = dependency.name.padEnd(length);
+            dependency.name = dependency.name.concat(' :');
+            dependency.value = dependency.value.replace(/([\^~])/, '');
+        });
+        return sorted;
+    }
+}

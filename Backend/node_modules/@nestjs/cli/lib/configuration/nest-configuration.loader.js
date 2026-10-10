@@ -1,0 +1,60 @@
+import { ReaderFileLackPermissionsError } from '../readers/index.js';
+import { defaultConfiguration } from './defaults.js';
+/**
+ * A cache table that maps some reader (by its name along with the config path)
+ * to a loaded configuration.
+ * This was added because several commands relies on the app's config in order
+ * to generate some dynamic content prior running the command itself.
+ */
+const loadedConfigsCache = new Map();
+export class NestConfigurationLoader {
+    reader;
+    constructor(reader) {
+        this.reader = reader;
+    }
+    load(name) {
+        const cacheEntryKey = `${this.reader.constructor.name}:${name}`;
+        const cachedConfig = loadedConfigsCache.get(cacheEntryKey);
+        if (cachedConfig) {
+            return cachedConfig;
+        }
+        let loadedConfig = defaultConfiguration;
+        const contentOrError = name
+            ? this.reader.read(name)
+            : this.reader.readAnyOf(['nest-cli.json', '.nest-cli.json']);
+        if (contentOrError) {
+            const isMissingPermissionsError = contentOrError instanceof ReaderFileLackPermissionsError;
+            if (isMissingPermissionsError) {
+                console.error(contentOrError.message);
+                process.exit(1);
+            }
+            const configFilename = name ?? 'nest-cli.json';
+            let fileConfig;
+            try {
+                fileConfig = JSON.parse(contentOrError);
+            }
+            catch (err) {
+                const reason = err instanceof Error ? err.message : String(err);
+                throw new Error(`Could not parse Nest CLI configuration file "${configFilename}". Please, ensure that the file contains valid JSON. Reason: ${reason}`);
+            }
+            loadedConfig = {
+                ...defaultConfiguration,
+                ...fileConfig,
+            };
+            if (fileConfig.compilerOptions) {
+                loadedConfig.compilerOptions = {
+                    ...defaultConfiguration.compilerOptions,
+                    ...fileConfig.compilerOptions,
+                };
+            }
+            if (fileConfig.generateOptions) {
+                loadedConfig.generateOptions = {
+                    ...defaultConfiguration.generateOptions,
+                    ...fileConfig.generateOptions,
+                };
+            }
+        }
+        loadedConfigsCache.set(cacheEntryKey, loadedConfig);
+        return loadedConfig;
+    }
+}

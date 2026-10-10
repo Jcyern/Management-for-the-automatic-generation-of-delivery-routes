@@ -1,0 +1,57 @@
+import { join, strings } from '@angular-devkit/core';
+import { apply, chain, filter, mergeWith, move, noop, SchematicsException, template, url, } from '@angular-devkit/schematics';
+import { formatFiles } from '../../utils/format-files.rule.js';
+import { normalizeToKebabOrSnakeCase } from '../../utils/formatting.js';
+import { NameParser } from '../../utils/name.parser.js';
+import { isEsmProject, mergeSourceRoot, } from '../../utils/source-root.helpers.js';
+import { DEFAULT_LANGUAGE } from '../defaults.js';
+export function main(options) {
+    options = transform(options);
+    return chain([
+        mergeSourceRoot(options),
+        (tree) => {
+            options.isEsm = isEsmProject(tree);
+            return tree;
+        },
+        mergeWith(generate(options)),
+        options.format === true ? formatFiles() : noop(),
+    ]);
+}
+function transform(options) {
+    const target = Object.assign({}, options);
+    if (!target.name) {
+        throw new SchematicsException('Option (name) is required.');
+    }
+    const location = new NameParser().parse(target);
+    target.name = normalizeToKebabOrSnakeCase(location.name);
+    target.specFileSuffix = normalizeToKebabOrSnakeCase(options.specFileSuffix || 'spec');
+    if (target.name.includes('.')) {
+        target.className = strings.classify(target.name).replace('.', '');
+    }
+    else {
+        target.className = target.name;
+    }
+    target.language =
+        target.language !== undefined ? target.language : DEFAULT_LANGUAGE;
+    target.path = normalizeToKebabOrSnakeCase(location.path);
+    target.path = target.flat
+        ? target.path
+        : join(target.path, target.name);
+    return target;
+}
+function generate(options) {
+    return (context) => apply(url(join('./files', options.language)), [
+        options.spec
+            ? noop()
+            : filter((path) => {
+                const languageExtension = options.language || 'ts';
+                const suffix = `.__specFileSuffix__.${languageExtension}`;
+                return !path.endsWith(suffix);
+            }),
+        template({
+            ...strings,
+            ...options,
+        }),
+        move(options.path),
+    ])(context);
+}

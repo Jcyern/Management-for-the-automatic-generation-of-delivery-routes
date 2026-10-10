@@ -1,0 +1,36 @@
+import { join, strings } from '@angular-devkit/core';
+import { apply, chain, mergeWith, noop, move, SchematicsException, template, url, } from '@angular-devkit/schematics';
+import { formatFiles } from '../../utils/format-files.rule.js';
+import { normalizeToKebabOrSnakeCase } from '../../utils/formatting.js';
+import { NameParser } from '../../utils/name.parser.js';
+import { mergeSourceRoot } from '../../utils/source-root.helpers.js';
+export function main(options) {
+    options = transform(options);
+    return chain([
+        mergeSourceRoot(options),
+        mergeWith(generate(options)),
+        options.format === true ? formatFiles() : noop(),
+    ]);
+}
+function transform(options) {
+    const target = Object.assign({}, options);
+    if (!target.name) {
+        throw new SchematicsException('Option (name) is required.');
+    }
+    const location = new NameParser().parse(target);
+    target.name = normalizeToKebabOrSnakeCase(location.name);
+    target.path = normalizeToKebabOrSnakeCase(location.path);
+    target.path = target.flat
+        ? target.path
+        : join(target.path, target.name);
+    return target;
+}
+function generate(options) {
+    return (context) => apply(url('./files'), [
+        template({
+            ...strings,
+            ...options,
+        }),
+        move(options.path),
+    ])(context);
+}
