@@ -1,0 +1,60 @@
+# Dependencias
+node_modules/
+
+# Build
+dist/
+build/
+/generated
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Logs
+*.log
+logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Tests / cobertura
+/coverage
+/.nyc_output
+
+# Variables de entorno (credenciales) - NUNCA subir
+.env
+.env.*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# temp directory
+.temp
+.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

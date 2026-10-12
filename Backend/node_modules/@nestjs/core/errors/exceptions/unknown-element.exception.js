@@ -1,7 +1,0 @@
-import { RuntimeException } from './runtime.exception.js';
-export class UnknownElementException extends RuntimeException {
-    constructor(name) {
-        name = name && name.toString();
-        super(`Nest could not find ${name || 'given'} element (this provider does not exist in the current context)`);
-    }
-}
