@@ -21,6 +21,7 @@ dist-ssr
 
 # Caches
 .vite
+.vite-ssr
 .eslintcache
 *.tsbuildinfo
 

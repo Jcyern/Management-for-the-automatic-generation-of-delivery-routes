@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: rutas-frontend
+    ports:
+      - "8090:80"
+    restart: unless-stopped
