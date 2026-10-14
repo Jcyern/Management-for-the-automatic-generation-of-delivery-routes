@@ -146,7 +146,7 @@ export function GlobeBackground() {
     const HOLD_TIME_MAX = 1400;
     const FADE_SPEED = 1 / 800;
     const ROTATION_SPEED = 0.00008;
-    const TILT = -0.32;
+    const TILT = 0.32;
     const HORIZON = 0.01; 
 
     let width = window.innerWidth;
@@ -204,7 +204,7 @@ export function GlobeBackground() {
         const scale = cameraDist / (cameraDist - z2);
         return {
           x: cx + x1 * radius * scale,
-          y: cy + y1 * radius * scale,
+          y: cy - y1 * radius * scale,
           z: z2,
           scale,
           visible: z2 > HORIZON,
