@@ -20,15 +20,68 @@ model Pedido {
   prioridad String
   tipoEntrega String
   zona String 
+
+
+  idCentro Int
+  centro CentroDeDistribucion @relation(fields: [idCentro],references: [id],name: "Pertenece")
+
+
+  idCoordinador Int
+  coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [id], name: "Ingresa")
 }
 model CentroDeDistribucion {
   id Int @id @default(autoincrement())
   nombre String 
   programaLogistico String
 
+  pedidos Pedido[] @relation(name: "Pertenece")
+  
+  zonas Zona[] @relation(name: "Cubre")
+}
+
+model Zona {
+  id Int @id @default(autoincrement())
+  nombre String
+  
+  centros CentroDeDistribucion[] @relation(name: "Cubre")
 }
 
 model Ruta {
   id Int @id @default(autoincrement())
   
+}
+
+
+
+//Jerarquia de Coordinador Logisitico
+
+model CoordinadorLogistico{
+  id Int @id @default(autoincrement())
+  nombre String
+
+//varios hijos logisticos
+  logisticos Logistico[] @relation(name: "Logistico-CoodinadorLogistico")
+
+//varios hijos supervisores
+  supervisores SupervisorLogistico[] @relation(name: "SupervisorLogistico-CoodinadorLogistico")
+
+
+// relacion ingresar con pedidos
+  ingresarPedidos Pedido[] @relation(name: "Ingresa")
+}
+
+// hijo Logistico de Coordinador Logistico
+model Logistico{
+  id Int @id @default(autoincrement())
+  idCoordinador Int 
+
+  coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [id],name: "Logistico-CoodinadorLogistico")
+}
+
+// hijo Supervisor de Coordinador Logistico
+model SupervisorLogistico{
+  id Int @id @default(autoincrement())
+  idCoordinador Int 
+
+  coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [id],name: "SupervisorLogistico-CoodinadorLogistico")
 }
