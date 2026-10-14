@@ -4,3 +4,8 @@ dist/
 *.log
 
 /generated/prisma
+
+
+.agents/
+.skills/
+.opencode/skills/

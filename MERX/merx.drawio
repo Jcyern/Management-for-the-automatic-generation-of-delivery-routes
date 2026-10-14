@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="CR6RxnInSdX7RoK5ry0z" name="Page-1">
-        <mxGraphModel dx="1228" dy="1059" grid="1" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1249" dy="904" grid="1" gridSize="10" guides="1" tooltips="0" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -329,6 +329,16 @@
                 <mxCell id="X806RPWHtIiLiLgyRUMN-21" edge="1" parent="1" source="78o-2s8k7oBcjmoXpoPq-12" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="BQQ6KrbEk3fLeQlRIDLx-3">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
+                <mxCell id="4wIRdhqKr6aqG2b7Fls6-1" edge="1" parent="1" source="X806RPWHtIiLiLgyRUMN-24" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-20.000000000000227" y="599.9999999999998" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="4wIRdhqKr6aqG2b7Fls6-3" edge="1" parent="1" source="X806RPWHtIiLiLgyRUMN-24" style="edgeStyle=none;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-20.000000000000227" y="689.9999999999998" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
                 <mxCell id="X806RPWHtIiLiLgyRUMN-24" parent="1" style="whiteSpace=wrap;html=1;" value="Zonas" vertex="1">
                     <mxGeometry height="50" width="110" x="20" y="620" as="geometry"/>
                 </mxCell>
@@ -508,6 +518,12 @@
                 </mxCell>
                 <mxCell id="rqmdyOm3bQUFPJwk6hbP-7" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Nombre Flota" vertex="1">
                     <mxGeometry height="50" width="60" x="190" y="440" as="geometry"/>
+                </mxCell>
+                <mxCell id="4wIRdhqKr6aqG2b7Fls6-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="id zona" vertex="1">
+                    <mxGeometry height="50" width="70" x="-70" y="570" as="geometry"/>
+                </mxCell>
+                <mxCell id="4wIRdhqKr6aqG2b7Fls6-4" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="nombre zona" vertex="1">
+                    <mxGeometry height="60" width="70" x="-70" y="670" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
