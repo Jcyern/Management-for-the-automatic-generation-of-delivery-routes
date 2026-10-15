@@ -5,6 +5,10 @@ node_modules/
 dist/
 build/
 /generated
+Backend/generated/
+
+# Documentos PDF
+*.pdf
 
 # TypeScript build cache
 *.tsbuildinfo
