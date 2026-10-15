@@ -9,3 +9,5 @@ dist/
 .agents/
 .skills/
 .opencode/skills/
+
+agent.md
