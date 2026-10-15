@@ -5,7 +5,7 @@ UNWIND [
   {id: 3, nombre: 'Zona Este'},
   {id: 4, nombre: 'Zona Oeste'},
   {id: 5, nombre: 'Zona Centro'},
-  {id: 6, nombre: 'Zona Poniente'}
+  {id: 6, nombre: 'Zona Extra'}
 ] AS z
 MERGE (n:Zona {id: z.id}) SET n.nombre = z.nombre;
 

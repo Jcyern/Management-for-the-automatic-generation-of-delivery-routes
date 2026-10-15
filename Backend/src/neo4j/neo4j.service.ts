@@ -11,6 +11,7 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
     this.driver = neo4j.driver(
       config.uri,
       neo4j.auth.basic(config.username, config.password),
+      { disableLosslessIntegers: true },
     );
   }
 

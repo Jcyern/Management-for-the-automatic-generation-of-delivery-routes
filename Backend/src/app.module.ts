@@ -4,6 +4,7 @@ import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { Neo4jModule } from './neo4j/neo4j.module.js';
+import { GrafoModule } from './grafo/grafo.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -15,7 +16,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       appSecret: 'YOUR_APP_SECRET',
       serviceId: 'management-for-the-automatic-generation-of-delivery-routes',
     }),
-    Neo4jModule,
+    Neo4jModule, GrafoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
