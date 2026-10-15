@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 /generated
+/generated/prisma
 
 # TypeScript build cache
 *.tsbuildinfo
@@ -39,22 +40,10 @@ Thumbs.db
 .settings/
 *.sublime-workspace
 
-# IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+# Opencode / agents locales
+.agents/
+.skills/
+.opencode/skills/
 
-# temp directory
-.temp
-.tmp
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Diagnostic reports (https://nodejs.org/api/report.html)
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+# Docs locales
+agent.md
