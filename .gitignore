@@ -4,8 +4,10 @@ node_modules/
 # Build
 dist/
 build/
-/generated
-/generated/prisma
+
+# Prisma Client generado
+/generated/
+/Backend/src/generated/
 
 # TypeScript build cache
 *.tsbuildinfo
@@ -20,8 +22,8 @@ yarn-error.log*
 lerna-debug.log*
 
 # Tests / cobertura
-/coverage
-/.nyc_output
+coverage/
+.nyc_output/
 
 # Variables de entorno (credenciales) - NUNCA subir
 .env
@@ -30,9 +32,11 @@ lerna-debug.log*
 # Sistema operativo
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
 
-# IDEs and editors
-/.idea
+# IDEs and editors (locales)
+.idea/
+.vscode/
 .project
 .classpath
 .c9/
@@ -40,10 +44,17 @@ Thumbs.db
 .settings/
 *.sublime-workspace
 
+# Frontend (build / cache)
+.next/
+.vite/
+out/
+.turbo/
+.cache/
+
 # Opencode / agents locales
 .agents/
 .skills/
-.opencode/skills/
+.opencode/
 
 # Docs locales
 agent.md
