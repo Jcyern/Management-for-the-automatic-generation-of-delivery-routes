@@ -27,7 +27,7 @@ model Pedido {
 
 
   idCoordinador Int
-  coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [id], name: "Ingresa")
+  coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
 }
 model CentroDeDistribucion {
   id Int @id @default(autoincrement())
@@ -74,15 +74,14 @@ model Ruta {
 //Jerarquia de Coordinador Logisitico
 
 model CoordinadorLogistico{
-  id Int @id @default(autoincrement())
+  idUser Int @id
+  user Usuario @relation(fields: [idUser], references: [id]) 
   nombre String
   especialidad String
 
-//varios hijos logisticos
-  logisticos Logistico[] @relation(name: "Logistico-CoodinadorLogistico")
-
-//varios hijos supervisores
-  supervisores SupervisorLogistico[] @relation(name: "SupervisorLogistico-CoodinadorLogistico")
+//un coordinador logistico puede ser supervisor o logisitco , no los dos al mismo tiempo
+  logistico Logistico? @relation(name: "Logistico-CoodinadorLogistico")
+  supervisor SupervisorLogistico? @relation(name: "SupervisorLogistico-CoodinadorLogistico")
 
 
 // relacion ingresar con pedidos
@@ -97,20 +96,18 @@ model CoordinadorLogistico{
 
 // hijo Logistico de Coordinador Logistico
 model Logistico{
-  id Int @id @default(autoincrement())
-  idCoordinador Int 
-
-  coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [id],name: "Logistico-CoodinadorLogistico")
+  id Int @id 
+  
+  coordinador CoordinadorLogistico @relation(fields: [id], references: [idUser],name: "Logistico-CoodinadorLogistico")
 
   rutas Ruta[] @relation(name: "RutasCreadas")
 }
 
 // hijo Supervisor de Coordinador Logistico
 model SupervisorLogistico{
-  id Int @id @default(autoincrement())
-  idCoordinador Int 
-
-  coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [id],name: "SupervisorLogistico-CoodinadorLogistico")
+  id Int @id 
+   
+  coordinador CoordinadorLogistico @relation(fields: [id], references: [idUser],name: "SupervisorLogistico-CoodinadorLogistico")
 
   rutas Ruta[] @relation(name: "RutasSupervisadas")
 
@@ -128,7 +125,8 @@ model Realizar{
 }
 
 model Repartidor {
-  id Int @id @default(autoincrement())
+  idUser Int @id 
+  user Usuario @relation(fields: [idUser], references: [id])
   nombre String
   edad Int
 
@@ -184,4 +182,22 @@ model Reprogramar{
 
   fechaSolicitada DateTime
   fechaResultado DateTime
+}
+
+
+model Usuario{
+  id Int @id @default(autoincrement())
+  correo String @unique
+  password String 
+  nombre String
+  rol Rol 
+
+  repartidor Repartidor? @relation()
+  coordinador CoordinadorLogistico?
+}
+
+enum Rol{
+  LOGISTICO
+  REPARTIDOR
+  SUPERVISOR
 }
