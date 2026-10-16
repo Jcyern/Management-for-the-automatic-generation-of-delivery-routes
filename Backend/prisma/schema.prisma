@@ -28,6 +28,7 @@ model Pedido {
 
   idCoordinador Int
   coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
+  paradas Parada[] @relation(name: "Tiene")
 }
 model CentroDeDistribucion {
   id Int @id @default(autoincrement())
@@ -160,6 +161,9 @@ model Vehiculo{
 model Parada {
   id Int @id @default(autoincrement())
   estadoEjecucion String
+
+  idPedido Int?
+  pedido Pedido? @relation(fields: [idPedido], references: [id], name: "Tiene")
 
   rutas Ruta[] @relation(name: "Pertence")
 }
