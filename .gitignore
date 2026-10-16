@@ -6,6 +6,7 @@ dist/
 build/
 /generated
 Backend/generated/
+Backend/src/generated/
 
 # Documentos PDF
 *.pdf
