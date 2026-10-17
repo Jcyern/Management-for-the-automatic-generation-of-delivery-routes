@@ -6,6 +6,7 @@ import { AppService } from './app.service.js';
 import { Neo4jModule } from './neo4j/neo4j.module.js';
 import { GrafoModule } from './grafo/grafo.module.js';
 import { PrismaModule } from './prismaModule/prisma.module.js';
+import { ParadasModule } from './paradas/paradas.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -17,7 +18,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       appSecret: 'YOUR_APP_SECRET',
       serviceId: 'management-for-the-automatic-generation-of-delivery-routes',
     }),
-    Neo4jModule, GrafoModule, PrismaModule,
+    Neo4jModule, GrafoModule, PrismaModule, ParadasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
