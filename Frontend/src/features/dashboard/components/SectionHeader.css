@@ -1,0 +1,18 @@
+
+.section-header {
+  margin-bottom: 1rem;
+  margin-top: 2rem;
+}
+
+.section-header-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #292f36;
+  margin: 0;
+}
+
+.section-header-subtitle {
+  font-size: 0.85rem;
+  color: #718096;
+  margin: 0.25rem 0 0 0;
+}
