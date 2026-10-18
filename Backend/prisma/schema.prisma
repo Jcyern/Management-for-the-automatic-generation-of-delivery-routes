@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../Backend/src/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -15,6 +15,7 @@ model Pedido {
   tipoEntrega   String
   zona          String
   idCentro      Int
+  centro        CentroDeDistribucion @relation(fields: [idCentro], references: [id], name: "Pertenece")
   idCoordinador Int
   coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
 }

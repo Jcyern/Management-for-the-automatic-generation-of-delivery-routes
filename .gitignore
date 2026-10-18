@@ -7,6 +7,7 @@ build/
 /generated
 /generated/prisma
 Backend/generated/
+Backend/src/generated/
 
 # Documentos PDF
 *.pdf
@@ -35,6 +36,7 @@ lerna-debug.log*
 # Sistema operativo
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
 
 # IDEs and editors
 /.idea
@@ -51,6 +53,10 @@ Thumbs.db
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+/Backend/.vscode/
+
+# opencode (local)
+.opencode/
 
 # temp directory
 .temp
