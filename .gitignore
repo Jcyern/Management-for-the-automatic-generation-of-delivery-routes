@@ -4,10 +4,12 @@ node_modules/
 # Build
 dist/
 build/
+/generated
+/generated/prisma
+Backend/generated/
 
-# Prisma Client generado
-/generated/
-/Backend/src/generated/
+# Documentos PDF
+*.pdf
 
 # TypeScript build cache
 *.tsbuildinfo
@@ -22,21 +24,20 @@ yarn-error.log*
 lerna-debug.log*
 
 # Tests / cobertura
-coverage/
-.nyc_output/
+/coverage
+/.nyc_output
 
 # Variables de entorno (credenciales) - NUNCA subir
 .env
 .env.*
+!.env.example
 
 # Sistema operativo
 .DS_Store
 Thumbs.db
-*:Zone.Identifier
 
-# IDEs and editors (locales)
-.idea/
-.vscode/
+# IDEs and editors
+/.idea
 .project
 .classpath
 .c9/
@@ -44,17 +45,27 @@ Thumbs.db
 .settings/
 *.sublime-workspace
 
-# Frontend (build / cache)
-.next/
-.vite/
-out/
-.turbo/
-.cache/
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
-# Opencode / agents locales
-.agents/
-.skills/
-.opencode/
+# temp directory
+.temp
+.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
 
 # Docs locales
 agent.md
+AGENTS.md
