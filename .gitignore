@@ -1,6 +1,72 @@
+# Dependencias
 node_modules/
-.env
-dist/
-*.log
 
+# Build
+dist/
+build/
+/generated
 /generated/prisma
+Backend/generated/
+Backend/src/generated/
+
+# Documentos PDF
+*.pdf
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Logs
+*.log
+logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Tests / cobertura
+/coverage
+/.nyc_output
+
+# Variables de entorno (credenciales) - NUNCA subir
+.env
+.env.*
+!.env.example
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode (local, no se sube)
+.vscode/
+
+# opencode (local)
+.opencode/
+
+# temp directory
+.temp
+.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+
+# Docs locales
+agent.md
+AGENTS.md

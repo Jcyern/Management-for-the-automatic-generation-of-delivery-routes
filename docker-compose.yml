@@ -7,3 +7,19 @@ services:
     ports:
       - "8090:80"
     restart: unless-stopped
+
+  neo4j:
+    image: neo4j:5.26
+    container_name: rutas-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD:-password}"
+      NEO4J_PLUGINS: '["apoc"]'
+    volumes:
+      - neo4j_data:/data
+    restart: unless-stopped
+
+volumes:
+  neo4j_data:
