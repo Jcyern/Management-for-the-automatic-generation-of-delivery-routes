@@ -9,7 +9,9 @@ import { Modal } from '../../../../components/common/Modal';
 import { PedidoForm } from '../../components/PedidoForm';
 import { useAuth } from '../../../auth/context/AuthContext';
 import './PedidosList.css';
-
+import { paradasService } from '../../services/paradasService';
+import { ParadaForm } from '../../components/ParadaForm';
+import type { CreateParadaDto } from '../../types/parada';
 /**
  * Page that lists delivery orders with filters, sorting, pagination
  * and a modal form for creating new orders.
@@ -34,6 +36,9 @@ export function PedidosList() {
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isParadaModalOpen, setIsParadaModalOpen] = useState(false);
+  const [selectedPedidoId, setSelectedPedidoId] = useState<string | null>(null);
+  const [isSubmittingParada, setIsSubmittingParada] = useState(false);
 
   const handleCreate = async (data: Parameters<typeof pedidosService.create>[0]) => {
     if (!user) return;
@@ -42,9 +47,22 @@ export function PedidosList() {
       await pedidosService.create(data, user.name);
       setIsModalOpen(false);
       refresh();
-      window.location.reload();
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCreateParada = async (data: CreateParadaDto) => {
+    setIsSubmittingParada(true);
+    try {
+      await paradasService.create(data);
+      setIsParadaModalOpen(false);
+      alert('Parada creada correctamente');
+    } catch (error) {
+      console.error(error);
+      alert('Error al crear la parada');
+    } finally {
+      setIsSubmittingParada(false);
     }
   };
 
@@ -77,6 +95,10 @@ export function PedidosList() {
             sortKey={sortKey}
             sortDirection={sortDirection}
             onSort={toggleSort}
+            onAddParada={(id) => {
+              setSelectedPedidoId(id);
+              setIsParadaModalOpen(true);
+            }}
           />
           <Pagination
             page={page}
@@ -97,6 +119,21 @@ export function PedidosList() {
           onCancel={() => setIsModalOpen(false)}
           isSubmitting={isSubmitting}
         />
+      </Modal>
+
+      <Modal
+        isOpen={isParadaModalOpen}
+        title="Añadir Parada al Pedido"
+        onClose={() => setIsParadaModalOpen(false)}
+      >
+        {selectedPedidoId && (
+          <ParadaForm
+            idPedido={selectedPedidoId}
+            onSubmit={handleCreateParada}
+            onCancel={() => setIsParadaModalOpen(false)}
+            isSubmitting={isSubmittingParada}
+          />
+        )}
       </Modal>
     </div>
   );

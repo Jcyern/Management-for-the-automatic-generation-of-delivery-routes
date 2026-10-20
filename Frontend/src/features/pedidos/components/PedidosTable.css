@@ -145,3 +145,26 @@
   background: #fef3c7;
   color: #92400e;
 }
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #718096;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, transform 0.1s;
+}
+
+.btn-icon:hover {
+  background-color: rgba(78, 205, 196, 0.15); 
+  color: #2ba89e; 
+}
+
+.btn-icon:active {
+  transform: scale(0.92); 
+}
