@@ -18,6 +18,12 @@ model Pedido {
   centro        CentroDeDistribucion @relation(fields: [idCentro], references: [id], name: "Pertenece")
   idCoordinador Int
   coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
+  paradas     Parada[] @relation(name: "Tiene")
+  fechaCreado DateTime      @default(now())
+  fechaLimite DateTime?
+  estado      Estado_Pedido @default(Pendiente)
+  destinatario String
+  direccion    String
 }
 
 model CentroDeDistribucion {
@@ -131,9 +137,11 @@ model Vehiculo {
 }
 
 model Parada {
-  id              Int    @id @default(autoincrement())
+  id              Int     @id @default(autoincrement())
   estadoEjecucion String
-  rutas           Ruta[] @relation("Pertence")
+  idPedido        Int?
+  pedido          Pedido? @relation(fields: [idPedido], references: [id], name: "Tiene")
+  rutas           Ruta[]  @relation("Pertence")
 }
 
 model Reporte {
@@ -170,4 +178,11 @@ enum Rol{
   LOGISTICO
   REPARTIDOR
   SUPERVISOR
+}
+
+enum Estado_Pedido {
+  Pendiente
+  Entregado
+  Fallido
+  En_Ruta
 }
