@@ -1,4 +1,9 @@
 /**
+ * Execution states supported by the backend for a stop.
+ */
+export type EstadoEjecucion = 'PENDIENTE' | 'EN_CAMINO' | 'COMPLETADA' | 'CANCELADA';
+
+/**
  * Represents a stop (parada) associated with an order.
  */
 export interface Parada {
@@ -13,5 +18,5 @@ export interface Parada {
  */
 export interface CreateParadaDto {
   idPedido: number;
-  estadoEjecucion: string;
+  estadoEjecucion: EstadoEjecucion;
 }

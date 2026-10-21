@@ -8,6 +8,7 @@ import { GrafoModule } from './grafo/grafo.module.js';
 import { PrismaModule } from './prismaModule/prisma.module.js';
 import { AuthModule } from './Auth/Auth.module.js';
 import { OrderModule } from './Order/Order.module.js';
+import { ParadasModule } from './paradas/paradas.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -20,7 +21,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       serviceId: 'management-for-the-automatic-generation-of-delivery-routes',
     }),
     Neo4jModule, GrafoModule,
-    PrismaModule, AuthModule, OrderModule,
+    PrismaModule, AuthModule, OrderModule, ParadasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

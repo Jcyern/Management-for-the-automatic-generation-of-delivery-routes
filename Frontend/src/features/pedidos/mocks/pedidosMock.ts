@@ -7,7 +7,7 @@ import type { Pedido } from '../types/pedido';
  */
 export const PEDIDOS_MOCK: Pedido[] = [
   {
-    id: 'P-001',
+    id: '1',
     centroId: 'C-01',
     zonaId: 'Z-01',
     tipoEntrega: 'paqueteria',
@@ -19,7 +19,7 @@ export const PEDIDOS_MOCK: Pedido[] = [
     fechaCreacion: '2026-10-14T09:15:00Z',
   },
   {
-    id: 'P-002',
+    id: '2',
     centroId: 'C-01',
     zonaId: 'Z-02',
     tipoEntrega: 'documentos',
@@ -31,7 +31,7 @@ export const PEDIDOS_MOCK: Pedido[] = [
     fechaCreacion: '2026-10-14T10:30:00Z',
   },
   {
-    id: 'P-003',
+    id: '3',
     centroId: 'C-01',
     zonaId: 'Z-01',
     tipoEntrega: 'perecederos',
@@ -43,7 +43,7 @@ export const PEDIDOS_MOCK: Pedido[] = [
     fechaCreacion: '2026-10-14T08:45:00Z',
   },
   {
-    id: 'P-004',
+    id: '4',
     centroId: 'C-02',
     zonaId: 'Z-03',
     tipoEntrega: 'paqueteria',
@@ -55,7 +55,7 @@ export const PEDIDOS_MOCK: Pedido[] = [
     fechaCreacion: '2026-10-13T15:20:00Z',
   },
   {
-    id: 'P-005',
+    id: '5',
     centroId: 'C-01',
     zonaId: 'Z-02',
     tipoEntrega: 'paqueteria',
@@ -67,7 +67,7 @@ export const PEDIDOS_MOCK: Pedido[] = [
     fechaCreacion: '2026-10-13T11:00:00Z',
   },
   {
-    id: 'P-006',
+    id: '6',
     centroId: 'C-02',
     zonaId: 'Z-04',
     tipoEntrega: 'documentos',
@@ -79,7 +79,7 @@ export const PEDIDOS_MOCK: Pedido[] = [
     fechaCreacion: '2026-10-14T07:00:00Z',
   },
   {
-    id: 'P-007',
+    id: '7',
     centroId: 'C-01',
     zonaId: 'Z-01',
     tipoEntrega: 'perecederos',
@@ -91,7 +91,7 @@ export const PEDIDOS_MOCK: Pedido[] = [
     fechaCreacion: '2026-10-13T09:30:00Z',
   },
   {
-    id: 'P-008',
+    id: '8',
     centroId: 'C-02',
     zonaId: 'Z-03',
     tipoEntrega: 'paqueteria',

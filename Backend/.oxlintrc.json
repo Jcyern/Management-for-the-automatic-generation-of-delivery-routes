@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": ["src/generated/**"],
   "rules": {
     "typescript/no-explicit-any": "off",
     "typescript/no-floating-promises": "error"

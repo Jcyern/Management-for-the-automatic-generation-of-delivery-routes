@@ -6,6 +6,12 @@
   gap: 1rem;
 }
 
+.parada-form-error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #e53e3e;
+}
+
 .pedido-form .form-row {
   display: flex;
   gap: 1rem;

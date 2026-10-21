@@ -59,8 +59,8 @@ export function PedidosList() {
       setIsParadaModalOpen(false);
       alert('Parada creada correctamente');
     } catch (error) {
-      console.error(error);
-      alert('Error al crear la parada');
+      const message = error instanceof Error ? error.message : 'Error al crear la parada';
+      alert(message);
     } finally {
       setIsSubmittingParada(false);
     }

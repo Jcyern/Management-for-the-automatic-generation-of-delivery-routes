@@ -1,7 +1,7 @@
 import type { Pedido, PedidoFilters } from '../types/pedido';
 import { PEDIDOS_MOCK } from '../mocks/pedidosMock';
 
-const STORAGE_KEY = 'pedidos_mock';
+const STORAGE_KEY = 'pedidos_mock_v2';
 
 /**
  * Reads the orders from localStorage, falling back to the initial mock
@@ -96,11 +96,13 @@ export const pedidosService = {
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     const pedidos = readStorage();
-    const nextNumber = String(pedidos.length + 1).padStart(3, '0');
+    const nextId = String(
+      pedidos.reduce((max, pedido) => Math.max(max, Number(pedido.id) || 0), 0) + 1
+    );
 
     const nuevo: Pedido = {
       ...data,
-      id: `P-${nextNumber}`,
+      id: nextId,
       estado: 'pendiente',
       creadoPor,
       fechaCreacion: new Date().toISOString(),
