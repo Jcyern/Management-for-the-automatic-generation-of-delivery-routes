@@ -19,7 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import { GlobeBackground } from '../../components/GlobeBackground/GlobeBackground';
 import './Login.css';
 import logo from '../../../../assets/logo.png';
-import { MailIcon, LockIcon } from '../../../../components/icons/AuthIcons';
+import { Mail, Lock } from 'lucide-react';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -155,7 +155,7 @@ export function Login() {
           <div className="form-group">
             <label htmlFor="email">Correo electrónico</label>
             <div className="input-with-icon">
-              <MailIcon className="input-icon" />
+              <Mail className="input-icon" />
               <input
                 id="email"
                 type="text"
@@ -175,7 +175,7 @@ export function Login() {
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
             <div className="input-with-icon password-wrapper">
-              <LockIcon className="input-icon" />
+              <Lock className="input-icon" />
               <input
                 id="password"
                 type="password"
