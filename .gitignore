@@ -7,6 +7,7 @@ build/
 /generated
 /generated/prisma
 Backend/generated/
+Backend/src/generated/
 
 # Documentos PDF
 *.pdf
@@ -35,6 +36,7 @@ lerna-debug.log*
 # Sistema operativo
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
 
 # IDEs and editors
 /.idea
@@ -45,12 +47,11 @@ Thumbs.db
 .settings/
 *.sublime-workspace
 
-# IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+# IDE - VSCode (local, no se sube)
+.vscode/
+
+# opencode (local)
+.opencode/
 
 # temp directory
 .temp
@@ -67,5 +68,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 Cambios.md
 
-
-AGENT.md
+# Docs locales
+agent.md
+AGENTS.md

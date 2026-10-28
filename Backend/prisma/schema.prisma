@@ -1,12 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -16,57 +10,51 @@ datasource db {
 }
 
 model Pedido {
-  id Int @id @default(autoincrement())
-  prioridad String
-  tipoEntrega String
-  zona String 
-
-
-  idCentro Int
-  centro CentroDeDistribucion @relation(fields: [idCentro],references: [id],name: "Pertenece")
-
-
+  id            Int                  @id @default(autoincrement())
+  prioridad     String
+  tipoEntrega   String
+  zona          String
+  idCentro      Int
+  centro        CentroDeDistribucion @relation(fields: [idCentro], references: [id], name: "Pertenece")
   idCoordinador Int
   coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
+  paradas     Parada[] @relation(name: "Tiene")
+  fechaCreado DateTime      @default(now())
+  fechaLimite DateTime?
+  estado      Estado_Pedido @default(Pendiente)
+  destinatario String
+  direccion    String
 }
+
 model CentroDeDistribucion {
-  id Int @id @default(autoincrement())
-  nombre String 
-  programaLogistico String
-
-  pedidos Pedido[] @relation(name: "Pertenece")
-  
-  zonas Zona[] @relation(name: "Cubre")
-
-  coordinadorCrearRutas CoordinadorLogistico[] @relation(name: "Crear Rutas")
-  coordinadorValidadRutas CoordinadorLogistico[] @relation(name: "Validar Rutas")
-
-  repartidores Repartidor[]@relation("Asignar")
+  id                      Int                    @id @default(autoincrement())
+  nombre                  String
+  programaLogistico       String
+  pedidos                 Pedido[]               @relation("Pertenece")
+  repartidores            Repartidor[]           @relation("Asignar")
+  coordinadorCrearRutas   CoordinadorLogistico[] @relation("Crear Rutas")
+  zonas                   Zona[]                 @relation("Cubre")
+  coordinadorValidadRutas CoordinadorLogistico[] @relation("Validar Rutas")
 }
 
 model Zona {
-  id Int @id @default(autoincrement())
-  nombre String
-  
-  centros CentroDeDistribucion[] @relation(name: "Cubre")
-  rutas Ruta[] @relation(name: "CubrirZonas")
+  id      Int                    @id @default(autoincrement())
+  nombre  String
+  centros CentroDeDistribucion[] @relation("Cubre")
+  rutas   Ruta[]                 @relation("CubrirZonas")
 }
 
 model Ruta {
-  id Int @id @default(autoincrement())
-  parametros String
-  paradas Parada[] @relation(name: "Pertence")
-
+  id                           Int                 @id @default(autoincrement())
+  cantidadTotalPedidos         Int
+  idLogistico                  Int
+  idSupervisor                 Int
+  parametros                   String
   proporcionPedidosTipoEntrega Int
-  zonasCubiertas Zona[] @relation(name: "CubrirZonas")
-  cantidadTotalPedidos Int
-
-
-  idLogistico Int
-  logistico Logistico @relation(fields: [idLogistico], references: [id], name: "RutasCreadas")
-
-  idSupervisor Int
-  supervisor SupervisorLogistico @relation(fields: [idSupervisor], references: [id], name: "RutasSupervisadas")
+  logistico                    Logistico           @relation("RutasCreadas", fields: [idLogistico], references: [id])
+  supervisor                   SupervisorLogistico @relation("RutasSupervisadas", fields: [idSupervisor], references: [id])
+  zonasCubiertas               Zona[]              @relation("CubrirZonas")
+  paradas                      Parada[]            @relation("Pertence")
 }
 
 
@@ -113,15 +101,11 @@ model SupervisorLogistico{
 
 }
 
-
-//relacion ternaria 
-model Realizar{
-  id Int @id @default(autoincrement())
+model Realizar {
+  id           Int  @id @default(autoincrement())
   repartidorId Int? @unique
-  vehiculoId Int? @unique
-  rutaId Int
-
-
+  vehiculoId   Int? @unique
+  rutaId       Int
 }
 
 model Repartidor {
@@ -139,47 +123,41 @@ model Repartidor {
 }
 
 model Flota {
-  id Int @id @default(autoincrement())
-  nombre String
-
-  repartidores Repartidor[] @relation(name: "Pertenecer")
-  vehiculos Vehiculo[] @relation(name: "Pertenecer")
-
-  
+  id           Int          @id @default(autoincrement())
+  nombre       String
+  repartidores Repartidor[] @relation("Pertenecer")
+  vehiculos    Vehiculo[]   @relation("Pertenecer")
 }
 
-model Vehiculo{
-  id Int @id  @default(autoincrement())
+model Vehiculo {
+  id        Int   @id @default(autoincrement())
   capacidad Int
-  flotaID Int
-  flota Flota @relation(fields: [flotaID], references: [id], name: "Pertenecer")
-
-
+  flotaID   Int
+  flota     Flota @relation("Pertenecer", fields: [flotaID], references: [id])
 }
 
 model Parada {
-  id Int @id @default(autoincrement())
+  id              Int     @id @default(autoincrement())
   estadoEjecucion String
-
-  rutas Ruta[] @relation(name: "Pertence")
+  idPedido        Int?
+  pedido          Pedido? @relation(fields: [idPedido], references: [id], name: "Tiene")
+  rutas           Ruta[]  @relation("Pertence")
 }
 
 model Reporte {
-  id Int @id @default(autoincrement())
-  fecha DateTime
-  descripcion String
-  idRepartidor Int
-
-  repartidores Repartidor[] @relation(name: "ConsultaR")
-  coordinadores CoordinadorLogistico[] @relation(name: "ConsultaC")
+  id            Int                    @id @default(autoincrement())
+  fecha         DateTime
+  descripcion   String
+  idRepartidor  Int
+  coordinadores CoordinadorLogistico[] @relation("ConsultaC")
+  repartidores  Repartidor[]           @relation("ConsultaR")
 }
 
-model Reprogramar{
-  id Int @id @default(autoincrement())
-  idCoordinador Int   //Fk CoorinadorLogistico
-  idRepartidor Int   @unique //Fk Repartidor
-  idRuta Int          //Fk Ruta
-
+model Reprogramar {
+  id              Int      @id @default(autoincrement())
+  idCoordinador   Int
+  idRepartidor    Int      @unique
+  idRuta          Int
   fechaSolicitada DateTime
   fechaResultado DateTime
 }
@@ -200,4 +178,11 @@ enum Rol{
   LOGISTICO
   REPARTIDOR
   SUPERVISOR
+}
+
+enum Estado_Pedido {
+  Pendiente
+  Entregado
+  Fallido
+  En_Ruta
 }
