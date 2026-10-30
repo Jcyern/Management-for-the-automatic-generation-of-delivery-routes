@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../Backend/src/generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -15,9 +15,15 @@ model Pedido {
   tipoEntrega   String
   zona          String
   idCentro      Int
+  centro        CentroDeDistribucion @relation(fields: [idCentro], references: [id], name: "Pertenece")
   idCoordinador Int
-  centro        CentroDeDistribucion @relation("Pertenece", fields: [idCentro], references: [id])
-  coordinador   CoordinadorLogistico @relation("Ingresa", fields: [idCoordinador], references: [id])
+  coordinador CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
+  paradas     Parada[] @relation(name: "Tiene")
+  fechaCreado DateTime      @default(now())
+  fechaLimite DateTime?
+  estado      Estado_Pedido @default(Pendiente)
+  destinatario String
+  direccion    String
 }
 
 model CentroDeDistribucion {
@@ -51,30 +57,48 @@ model Ruta {
   paradas                      Parada[]            @relation("Pertence")
 }
 
-model CoordinadorLogistico {
-  id                 Int                    @id @default(autoincrement())
-  nombre             String
-  especialidad       String
-  logisticos         Logistico[]            @relation("Logistico-CoodinadorLogistico")
-  ingresarPedidos    Pedido[]               @relation("Ingresa")
-  supervisores       SupervisorLogistico[]  @relation("SupervisorLogistico-CoodinadorLogistico")
-  reportes           Reporte[]              @relation("ConsultaC")
-  centrosCrearRuta   CentroDeDistribucion[] @relation("Crear Rutas")
-  centrosValidarRuta CentroDeDistribucion[] @relation("Validar Rutas")
+
+
+//Jerarquia de Coordinador Logisitico
+
+model CoordinadorLogistico{
+  idUser Int @id
+  user Usuario @relation(fields: [idUser], references: [id]) 
+  nombre String
+  especialidad String
+
+//un coordinador logistico puede ser supervisor o logisitco , no los dos al mismo tiempo
+  logistico Logistico? @relation(name: "Logistico-CoodinadorLogistico")
+  supervisor SupervisorLogistico? @relation(name: "SupervisorLogistico-CoodinadorLogistico")
+
+
+// relacion ingresar con pedidos
+  ingresarPedidos Pedido[] @relation(name: "Ingresa")
+
+  centrosCrearRuta CentroDeDistribucion[] @relation(name: "Crear Rutas")
+  centrosValidarRuta CentroDeDistribucion[] @relation(name: "Validar Rutas")
+
+
+  reportes Reporte[] @relation(name: "ConsultaC")
 }
 
-model Logistico {
-  id            Int                  @id @default(autoincrement())
-  idCoordinador Int
-  coordinador   CoordinadorLogistico @relation("Logistico-CoodinadorLogistico", fields: [idCoordinador], references: [id])
-  rutas         Ruta[]               @relation("RutasCreadas")
+// hijo Logistico de Coordinador Logistico
+model Logistico{
+  id Int @id 
+  
+  coordinador CoordinadorLogistico @relation(fields: [id], references: [idUser],name: "Logistico-CoodinadorLogistico")
+
+  rutas Ruta[] @relation(name: "RutasCreadas")
 }
 
-model SupervisorLogistico {
-  id            Int                  @id @default(autoincrement())
-  idCoordinador Int
-  rutas         Ruta[]               @relation("RutasSupervisadas")
-  coordinador   CoordinadorLogistico @relation("SupervisorLogistico-CoodinadorLogistico", fields: [idCoordinador], references: [id])
+// hijo Supervisor de Coordinador Logistico
+model SupervisorLogistico{
+  id Int @id 
+   
+  coordinador CoordinadorLogistico @relation(fields: [id], references: [idUser],name: "SupervisorLogistico-CoodinadorLogistico")
+
+  rutas Ruta[] @relation(name: "RutasSupervisadas")
+
 }
 
 model Realizar {
@@ -85,13 +109,17 @@ model Realizar {
 }
 
 model Repartidor {
-  id       Int                    @id @default(autoincrement())
-  nombre   String
-  edad     Int
-  flotaID  Int
-  flota    Flota                  @relation("Pertenecer", fields: [flotaID], references: [id])
-  centros  CentroDeDistribucion[] @relation("Asignar")
-  reportes Reporte[]              @relation("ConsultaR")
+  idUser Int @id 
+  user Usuario @relation(fields: [idUser], references: [id])
+  nombre String
+  edad Int
+
+  centros CentroDeDistribucion[] @relation("Asignar")
+  flotaID Int
+  flota Flota @relation(fields: [flotaID], references: [id], name: "Pertenecer")
+
+  reportes Reporte[] @relation(name: "ConsultaR")
+
 }
 
 model Flota {
@@ -109,9 +137,11 @@ model Vehiculo {
 }
 
 model Parada {
-  id              Int    @id @default(autoincrement())
+  id              Int     @id @default(autoincrement())
   estadoEjecucion String
-  rutas           Ruta[] @relation("Pertence")
+  idPedido        Int?
+  pedido          Pedido? @relation(fields: [idPedido], references: [id], name: "Tiene")
+  rutas           Ruta[]  @relation("Pertence")
 }
 
 model Reporte {
@@ -129,10 +159,30 @@ model Reprogramar {
   idRepartidor    Int      @unique
   idRuta          Int
   fechaSolicitada DateTime
-  fechaResultado  DateTime
+  fechaResultado DateTime
 }
 
-model User {
-  email String @unique
-  password String
+
+model Usuario{
+  id Int @id @default(autoincrement())
+  correo String @unique
+  password String 
+  nombre String
+  rol Rol 
+
+  repartidor Repartidor? @relation()
+  coordinador CoordinadorLogistico?
+}
+
+enum Rol{
+  LOGISTICO
+  REPARTIDOR
+  SUPERVISOR
+}
+
+enum Estado_Pedido {
+  Pendiente
+  Entregado
+  Fallido
+  En_Ruta
 }
