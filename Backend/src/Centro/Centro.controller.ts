@@ -15,7 +15,7 @@ import { CentroService } from './Centro.service.js';
 import { CreateCentroDto, UpdateCentroDto } from './dto/Centro.dto.js';
 import { RolesGuard } from '../Auth/roles.guard.js';
 import { Roles } from '../Auth/roles.decorator.js';
-import { Rol } from '../generated/prisma/client.js';
+import { RolUser } from '../generated/prisma/client.js';
 
 @Controller('centro')
 @UseGuards(AuthGuard('jwt'))
@@ -24,7 +24,7 @@ export class CentroController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Rol.LOGISTICO, Rol.SUPERVISOR)
+  @Roles(RolUser.COORDINADOR)
   create(@Body() dto: CreateCentroDto, @Req() req: any) {
     return this.centroService.create(dto, req.user.userId);
   }
@@ -41,7 +41,7 @@ export class CentroController {
 
   @Put(':id')
   @UseGuards(RolesGuard)
-  @Roles(Rol.LOGISTICO, Rol.SUPERVISOR)
+  @Roles(RolUser.COORDINADOR)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCentroDto,
@@ -52,7 +52,7 @@ export class CentroController {
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(Rol.LOGISTICO, Rol.SUPERVISOR)
+  @Roles(RolUser.COORDINADOR)
   remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.centroService.remove(id, req.user.userId);
   }

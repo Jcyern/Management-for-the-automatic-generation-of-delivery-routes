@@ -1,13 +1,13 @@
 import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Rol } from '../generated/prisma/client.js';
+import { RolUser } from '../generated/prisma/client.js';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
     constructor(private reflector: Reflector) {}
 
     canActivate(context: ExecutionContext): boolean {
-        const requiredRoles = this.reflector.getAllAndOverride<Rol[]>('roles', [
+        const requiredRoles = this.reflector.getAllAndOverride<RolUser[]>('roles', [
             context.getHandler(),
             context.getClass(),
         ]);
