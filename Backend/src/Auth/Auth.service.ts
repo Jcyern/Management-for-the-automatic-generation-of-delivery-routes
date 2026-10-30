@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
 import { AuthDto } from "./dto/Auth.dto.js";
 import { PrismaService } from "../prismaModule/prisma.service.js";
-import { Rol } from "../generated/prisma/client.js";
+import { RolUser } from "../generated/prisma/client.js";
 import { JwtService } from "@nestjs/jwt";
 
 
@@ -35,8 +35,8 @@ export class AuthService
         const payload = { sub: user.id, email: user.correo, rol: user.rol };
 
         let userData;
-        if(user.rol === Rol.LOGISTICO || user.rol === Rol.SUPERVISOR) userData = { ...datos, coordinador };
-        else if(user.rol === Rol.REPARTIDOR) userData = { ...datos, repartidor };
+        if(user.rol === RolUser.COORDINADOR) userData = { ...datos, coordinador };
+        else if(user.rol === RolUser.REPARTIDOR) userData = { ...datos, repartidor };
         else throw new ForbiddenException("Wrong Credentials");
 
         return {
