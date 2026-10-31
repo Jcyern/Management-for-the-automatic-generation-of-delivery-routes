@@ -1,0 +1,4 @@
+{
+	// Silenciar diagnósticos de Prisma (incluye warnings de "obsoleto" de url/directUrl)
+	"prisma.enableDiagnostics": false
+}

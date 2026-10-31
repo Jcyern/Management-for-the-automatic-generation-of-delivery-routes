@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Usuario {
+  id       Int    @id @default(autoincrement())
+  correo   String @unique
+  password String
+  nombre   String
+  rol      RolUser
+
+  repartidor  Repartidor?           @relation(name: "Repartidor-User")
+  coordinador CoordinadorLogistico? @relation(name: "Coordinador-User")
+}
+
+//Jerarquia de Coordinador Logisitico
+
+model CoordinadorLogistico {
+  idUser       Int     @id
+  user         Usuario @relation(fields: [idUser], references: [id], onDelete: Cascade , onUpdate: Cascade, name: "Coordinador-User")
+  nombre       String
+  especialidad RolCoordinador
+
+  
+  logistico  Logistico?           @relation(name: "Logistico-CoodinadorLogistico")
+  supervisor SupervisorLogistico? @relation(name: "SupervisorLogistico-CoodinadorLogistico")
+
+  administrador Administrador? @relation(name: "Administrador-CoordinadorLogistico")
+  // relacion ingresar con pedidos
+  pedidosIngresados Pedido[] @relation(name: "Ingresa")
+
+  centrosCrearRuta   CentroDeDistribucion[] @relation(name: "CrearRutas")
+  centrosValidarRuta CentroDeDistribucion[] @relation(name: "ValidarRutas")
+
+
+  asignaciones Asignar[] @relation(name: "Asignar")
+
+  reprogramaciones Reprogramar[] @relation(name: "Reprogramar")
+}
+
+// hijo Logistico de Coordinador Logistico
+model Logistico {
+  id Int @id
+  nombre String
+  coordinador CoordinadorLogistico @relation(fields: [id], references: [idUser], name: "Logistico-CoodinadorLogistico",onDelete: Cascade , onUpdate: Cascade)
+
+  rutas Ruta[] @relation(name: "Crear")
+}
+
+// hijo Supervisor de Coordinador Logistico
+model SupervisorLogistico {
+  id Int @id
+  nombre String
+  coordinador CoordinadorLogistico @relation(fields: [id], references: [idUser], name: "SupervisorLogistico-CoodinadorLogistico", onDelete: Cascade, onUpdate: Cascade)
+
+  validaciones Validar[] @relation(name: "Validar")
+
+  
+}
+
+model Administrador {
+  id Int @id
+  nombre String
+  coordinador CoordinadorLogistico @relation(fields: [id], references: [idUser], name:"Administrador-CoordinadorLogistico", onDelete: Cascade, onUpdate: Cascade)
+}
+
+model CentroDeDistribucion {
+  id                Int    @id @default(autoincrement())
+  nombre            String
+  programaLogistico String
+
+  pedidos                 Pedido[]              @relation("Pertenece")
+  repartidores            Repartidor[]           @relation("AsignarCentro")
+  coordinadorCrearRutas   CoordinadorLogistico[] @relation("CrearRutas")
+  zonas                   Zona[]                 @relation("Cubre")
+  coordinadorValidadRutas CoordinadorLogistico[] @relation("ValidarRutas")
+}
+
+model Zona {
+  id      Int                    @id @default(autoincrement())
+  nombre  String
+  centros CentroDeDistribucion[] @relation("Cubre")
+  rutas   Ruta[]                 @relation("CubrirZonas")
+
+  pedidos Pedido[] @relation("PertenecerZona")
+}
+
+model Ruta {
+  id     Int         @id @default(autoincrement())
+  estado EstadoRuta @default(Pendiente)
+  fechaRealizacion  DateTime
+
+  
+  //Parametros de Equilibrio
+  proporcionPedidosTipoEntrega Int
+  cantidadTotalPedidos         Int
+  zonasCubiertas               Zona[] @relation("CubrirZonas")
+
+  
+  idLogistico  Int
+  logistico  Logistico           @relation("Crear", fields: [idLogistico], references: [id])
+
+
+  paradas Parada[] @relation(name: "ContieneParada")
+  pedidos Pedido[] @relation(name: "Contener")
+
+
+  asignada Asignar? @relation(name: "Asignar")
+  validada Validar? @relation(name: "Validar")
+
+  realizada Realizar? @relation(name: "Realizar")
+
+
+  idReporte Int
+  reporte Reporte @relation(fields: [idReporte], references: [id], name: "GenerarReporte")
+
+}
+
+model Parada {
+  id              Int     @id @default(autoincrement())
+  estadoEjecucion EstadoParada?
+
+  pedidoAsociados Pedido[] @relation(name: "Asociado")
+  rutas           Ruta[]  @relation("ContieneParada")
+}
+
+model Pedido {
+  id          Int           @id @default(autoincrement())
+  prioridad   Prioridad     @default(Baja)
+  tipoEntrega TipoPedido   @default(Sin_Clasificar)
+  fechaPrevista DateTime      @default(now())
+  fechaEntrega DateTime?
+  estado      EstadoPedido @default(Pendiente)
+
+  //agregados
+  destinatario String
+  direccion    String
+
+  idParada Int
+  parada Parada @relation(fields: [idParada], references: [id], name: "Asociado")
+  
+  idCentro      Int
+  centro        CentroDeDistribucion @relation(fields: [idCentro], references: [id], name: "Pertenece")
+  
+  idCoordinador Int
+  coordinador   CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
+  
+  idRuta Int
+  ruta Ruta @relation(fields: [idRuta], references: [id], name:"Contener")
+
+  idZona Int
+  zona Zona @relation(fields: [idZona], references: [id], name: "PertenecerZona")
+
+  reprogramaciones Reprogramar[] @relation(name: "Reprogramar")
+
+}
+
+model Flota {
+  id           Int          @id @default(autoincrement())
+  nombre       String
+  repartidores Repartidor[] @relation("PertenecerFlota")
+  vehiculos    Vehiculo[]   @relation("PertenecerVehiculo")
+}
+
+model Vehiculo {
+  id        Int   @id @default(autoincrement())
+  capacidad Int
+  flotaID   Int
+  flota     Flota @relation(fields: [flotaID], references: [id], name: "PertenecerVehiculo")
+
+  rutasRealizadas Realizar[] @relation(name: "Realizar")
+}
+
+model Repartidor {
+  idUser Int     @id
+  user   Usuario @relation(fields: [idUser], references: [id], onDelete: Cascade, onUpdate: Cascade,name: "Repartidor-User")
+  nombre String
+  edad   Int
+
+  centros CentroDeDistribucion[] @relation("AsignarCentro")
+  idFlota Int
+  flota   Flota                  @relation(fields: [idFlota], references: [id], name: "PertenecerFlota")
+
+  rutasAsignadas Asignar[] @relation(name: "Asignar")
+
+  rutasRealizadas Realizar[] @relation(name: "Realizar")
+
+  reprogramacionesSolicitadas Reprogramar[] @relation(name: "Reprogramar")
+}
+
+model Realizar {
+  idRuta      Int @id
+  idRepartidor Int
+  idVehiculo Int 
+
+  ruta Ruta @relation(fields: [idRuta], references: [id], name: "Realizar")
+  repartidor Repartidor @relation(fields: [idRepartidor],references: [idUser],name: "Realizar")
+  vehiculo Vehiculo @relation(fields: [idVehiculo], references: [id],name: "Realizar")
+  
+}
+
+model Asignar{
+  idRuta Int @id
+  ruta Ruta @relation(fields: [idRuta], references: [id], name: "Asignar")
+
+  idcoordinador Int
+  coordinador  CoordinadorLogistico @relation(fields: [idcoordinador], references: [idUser], "Asignar")
+
+  idrepartidor Int 
+  repartidor  Repartidor @relation(fields: [idrepartidor], references: [idUser], name: "Asignar")
+
+  fecha DateTime
+
+}
+
+
+model Validar{
+  idRuta  Int @id
+  ruta Ruta @relation(fields: [idRuta], references: [id], name: "Validar")
+
+  idSupervisor  Int
+  supervisor SupervisorLogistico @relation(fields: [idSupervisor],references: [id] , name: "Validar")
+
+
+  fecha DateTime
+  observaciones String?
+  aprobadoRechazado Boolean // true aprobado , false rechazado
+
+
+}
+
+model Reporte {
+  id            Int                    @id @default(autoincrement())
+  fecha         DateTime
+  Entregado     Boolean  //true Entregado : false Fallido
+  EnTiempo      Boolean  //true En tiempo : false Fuera de Tiempo
+  descripcion   String
+
+  rutasConReporte Ruta[] @relation(name: "GenerarReporte")
+}
+
+model Reprogramar {
+  id              Int      @id @default(autoincrement())
+  idCoordinador   Int
+  idRepartidor    Int      
+  idPedido         Int
+
+  coordinador  CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Reprogramar")
+  repartidor Repartidor @relation(fields: [idRepartidor], references: [idUser],name: "Reprogramar")
+  pedido Pedido @relation(fields: [idPedido],references: [id], name: "Reprogramar")
+
+
+  fechaSolicitada DateTime
+  fechaResultado  DateTime
+
+  resultado Boolean //True reprogramado , False no reprogramado
+}
+
+
+
+// Enum definidos 
+
+enum RolUser {
+  COORDINADOR
+  REPARTIDOR
+}
+enum RolCoordinador{
+  SUPERVISOR
+  ADMINISTRADOR
+  LOGISTICO
+}
+
+enum EstadoPedido {
+  Pendiente
+  Entregado
+  Fallido
+  En_Ruta
+}
+
+enum EstadoRuta {
+  Pendiente
+  En_Curso
+  Terminada
+}
+
+enum TipoPedido {
+  Paqueteria
+  Perecederos
+  Documentos
+  Sin_Clasificar
+}
+
+enum Prioridad {
+  Baja
+  Media
+  Urgente
+}
+
+enum EstadoParada{
+  Pendiente
+  Visitada
+  Fallida
+}
