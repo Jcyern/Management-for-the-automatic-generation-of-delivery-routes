@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prismaModule/prisma.service.js';
 import { CreateZonaDto, UpdateZonaDto } from './dto/Zona.dto.js';
 
@@ -33,7 +33,21 @@ export class ZonaService {
   }
 
   async remove(id: number) {
-    await this.findOne(id);
+    const zona = await this.prisma.zona.findUnique({
+      where: { id },
+      include: { 
+        _count: { select: { pedidos: true, rutas: true } } 
+      },
+    });
+
+    if (!zona) throw new NotFoundException(`Zona ${id} not found`);
+
+    if (zona._count.pedidos > 0 || zona._count.rutas > 0) {
+      throw new BadRequestException(
+        `No se puede eliminar la zona porque tiene pedidos o rutas asociadas.`
+      );
+    }
+    
     return this.prisma.zona.delete({
       where: { id },
     });

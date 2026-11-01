@@ -4,7 +4,7 @@ import { ZonaService } from './Zona.service.js';
 import { CreateZonaDto, UpdateZonaDto } from './dto/Zona.dto.js';
 import { RolesGuard } from '../Auth/roles.guard.js';
 import { Roles } from '../Auth/roles.decorator.js';
-import { Rol } from '../generated/prisma/client.js';
+import { RolUser } from '../generated/prisma/client.js';
 
 @Controller('zona')
 @UseGuards(AuthGuard('jwt'))
@@ -13,7 +13,7 @@ export class ZonaController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Rol.LOGISTICO, Rol.SUPERVISOR)
+  @Roles(RolUser.COORDINADOR)
   create(@Body() dto: CreateZonaDto) {
     return this.zonaService.create(dto);
   }
@@ -30,14 +30,14 @@ export class ZonaController {
 
   @Put(':id')
   @UseGuards(RolesGuard)
-  @Roles(Rol.LOGISTICO, Rol.SUPERVISOR)
+  @Roles(RolUser.CCOORDINADOR)
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateZonaDto) {
     return this.zonaService.update(id, dto);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(Rol.LOGISTICO, Rol.SUPERVISOR)
+  @Roles(RolUser.COORDINADOR)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.zonaService.remove(id);
   }
