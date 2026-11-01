@@ -40,7 +40,7 @@ describe('GrafoService', () => {
 
     await service.caminoMasCorto(1, 2, 'tiempo');
 
-    expect(read.mock.calls[0][0]).toContain("'tiempoMin'");
+    expect(read.mock.calls[0]![0]).toContain("'tiempoMin'");
   });
 
   it('limita el maximo de rutas alternativas a 10', async () => {
@@ -48,7 +48,7 @@ describe('GrafoService', () => {
 
     await service.rutasAlternativas(1, 2, 'distancia', 99);
 
-    expect(read.mock.calls[0][0]).toContain('LIMIT 10');
+    expect(read.mock.calls[0]![0]).toContain('LIMIT 10');
   });
 
   it('valida los criterios permitidos', () => {

@@ -17,6 +17,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "oxlint --type-aware src/ test/",
+    "typecheck": "tsc --noEmit -p tsconfig.json --declaration false",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
