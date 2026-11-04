@@ -1,0 +1,68 @@
+
+.header {
+  height: 64px;
+  background: #f7fff7;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  flex-shrink: 0;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4ecdc4, #2ba89e);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.header-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #292f36;
+}
+
+.header-role {
+  font-size: 0.75rem;
+  color: #718096;
+}
+
+.header-logout {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  background: transparent;
+  color: #5c6a78;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.header-logout:hover {
+  background: rgba(255, 107, 107, 0.08);
+  color: #c53030;
+  border-color: #ff6b6b;
+}
