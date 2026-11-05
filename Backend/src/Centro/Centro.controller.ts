@@ -33,6 +33,12 @@ export class CentroController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.centroService.findOne(id);
   }
+  
+  @Get(':id/zonas')
+  async getZonasByCentro(@Param('id', ParseIntPipe) id: number) {
+    const centro = await this.centroService.findOne(id);
+    return centro.zonas;
+  }
 
   @Put(':id')
   @Roles(RolEfectivo.LOGISTICO, RolEfectivo.SUPERVISOR, RolEfectivo.ADMINISTRADOR)
