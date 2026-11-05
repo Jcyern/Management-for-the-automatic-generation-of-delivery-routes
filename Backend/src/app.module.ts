@@ -25,7 +25,8 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
     Neo4jModule, GrafoModule,
     PrismaModule, AuthModule, OrderModule,
-    CentroModule, ZonaModule, FlotaModule
+    CentroModule, ZonaModule, FlotaModule,
+    VehiculoModule
   ],
   controllers: [AppController],
   providers: [AppService],
