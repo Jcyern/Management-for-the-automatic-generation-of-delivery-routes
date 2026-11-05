@@ -8,6 +8,11 @@ import { GrafoModule } from './grafo/grafo.module.js';
 import { PrismaModule } from './prismaModule/prisma.module.js';
 import { AuthModule } from './Auth/Auth.module.js';
 import { OrderModule } from './Order/Order.module.js';
+import { CentroModule } from './Centro/Centro.module.js';
+import { ZonaModule } from './Zona/Zona.module.js';
+import { FlotaModule } from './Flota/Flota.module.js';
+import { VehiculoModule } from './Vehiculo/Vehiculo.module.js';
+import { RepartidorModule } from './Repartidor/Repartidor.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -21,6 +26,8 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
     Neo4jModule, GrafoModule,
     PrismaModule, AuthModule, OrderModule,
+    CentroModule, ZonaModule, FlotaModule,
+    VehiculoModule, RepartidorModule
   ],
   controllers: [AppController],
   providers: [AppService],

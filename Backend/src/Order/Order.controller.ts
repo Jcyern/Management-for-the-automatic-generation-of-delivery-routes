@@ -1,40 +1,41 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from "@nestjs/common";
 import { OrderService } from "./Order.service.js";
 import { CreateOrderDto, FilterOrderDto, UpdateOrderDto } from "./dto/Order.dto.js";
-
+import { Roles } from '../Auth/roles.decorator.js';
+import { RolEfectivo } from '../Auth/roles.js';
 
 @Controller('order')
-export class OrderController
-{
-    constructor( private orderService : OrderService ){}
+export class OrderController {
+  constructor(private readonly orderService: OrderService) {}
 
-    // POST /order
-    @Post()
-    create( @Body() dto : CreateOrderDto ) {
-        return this.orderService.create(dto);
-    }
+  @Post()
+  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.ADMINISTRADOR)
+  create(@Body() dto: CreateOrderDto) {
+    return this.orderService.create(dto);
+  }
 
-    // GET /order  ·  GET /order?estado=Pendiente
-    @Get()
-    findAll( @Query() filter : FilterOrderDto ) {
-        return this.orderService.findAll(filter.estado);
-    }
+  @Get()
+  findAll(@Query() filter: FilterOrderDto) {
+    return this.orderService.findAll(filter.estado);
+  }
 
-    // GET /order/:id
-    @Get(':id')
-    findOne( @Param('id', ParseIntPipe) id : number ) {
-        return this.orderService.findOne(id);
-    }
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.orderService.findOne(id);
+  }
 
-    // PUT /order/:id
-    @Put(':id')
-    update( @Param('id', ParseIntPipe) id : number, @Body() dto : UpdateOrderDto ) {
-        return this.orderService.update(id, dto);
-    }
+  @Put(':id')
+  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.ADMINISTRADOR)
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateOrderDto,
+  ) {
+    return this.orderService.update(id, dto);
+  }
 
-    // DELETE /order/:id
-    @Delete(':id')
-    remove( @Param('id', ParseIntPipe) id : number ) {
-        return this.orderService.remove(id);
-    }
+  @Delete(':id')
+  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.ADMINISTRADOR)
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.orderService.remove(id);
+  }
 }

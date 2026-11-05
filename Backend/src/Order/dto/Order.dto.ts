@@ -1,125 +1,143 @@
 import {
-    IsDateString,
-    IsEnum,
-    IsInt,
-    IsNotEmpty,
-    IsOptional,
-    IsPositive,
-    IsString,
-    ValidateIf,
-} from "class-validator";
-import { Estado_Pedido } from "../../generated/prisma/client.js";
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from 'class-validator';
+import {
+  EstadoPedido,
+  Prioridad,
+  TipoPedido,
+} from '../../generated/prisma/client.js';
 
-// Valida solo si el campo viene en el body (undefined = no enviado).
-// A diferencia de @IsOptional(), un `null` explícito NO se ignora:
-// se valida y falla con 400, en vez de llegar a Prisma y reventar con 500.
-const ifDefined = (_object : unknown, value : unknown) => value !== undefined;
+/**
+ * DTO para crear un pedido.
+ *
+ * Los campos con valor por defecto en el schema (prioridad, tipoEntrega,
+ * fechaPrevista, estado) son opcionales aquí.
+ * Las relaciones se envían por clave foránea: idCentro, idCoordinador,
+ * idZona, idParada e idRuta.
+ */
 
-// Dto para crear un Pedido (modelo Pedido del schema).
-// `id` es autoincremental y las relaciones (centro / coordinador)
-// se envían por su clave foránea (idCentro / idCoordinador).
-// Las fechas se reciben como string ISO-8601 (ej. "2026-10-25T18:00:00Z").
-export class CreateOrderDto
-{
-    @IsString()
-    @IsNotEmpty()
-    prioridad : string;
+export class CreateOrderDto {
+  @IsOptional()
+  @IsEnum(Prioridad)
+  prioridad?: Prioridad;
 
-    @IsString()
-    @IsNotEmpty()
-    tipoEntrega : string;
+  @IsOptional()
+  @IsEnum(TipoPedido)
+  tipoEntrega?: TipoPedido;
 
-    @IsString()
-    @IsNotEmpty()
-    zona : string;
+  @IsString()
+  @IsNotEmpty()
+  destinatario: string;
 
-    @IsInt()
-    @IsPositive()
-    idCentro : number;
+  @IsString()
+  @IsNotEmpty()
+  direccion: string;
 
-    @IsInt()
-    @IsPositive()
-    idCoordinador : number;
+  @IsInt()
+  @IsPositive()
+  idCentro: number;
 
-    // Opcional: si no se envía, la BD usa now() (@default(now())).
-    @ValidateIf(ifDefined)
-    @IsDateString()
-    fechaCreado? : string;
+  @IsInt()
+  @IsPositive()
+  idCoordinador: number;
 
-    // Opcional: fecha límite de entrega.
-    @ValidateIf(ifDefined)
-    @IsDateString()
-    fechaLimite? : string;
+  @IsInt()
+  @IsPositive()
+  idZona: number;
 
-    // Opcional: si no se envía, la BD usa Pendiente (@default(Pendiente)).
-    @ValidateIf(ifDefined)
-    @IsEnum(Estado_Pedido)
-    estado? : Estado_Pedido;
+  @IsInt()
+  @IsPositive()
+  idParada: number;
 
-    @IsString()
-    @IsNotEmpty()
-    destinatario : string;
+  @IsInt()
+  @IsPositive()
+  idRuta: number;
 
-    @IsString()
-    @IsNotEmpty()
-    direccion : string;
+  @IsOptional()
+  @IsDateString()
+  fechaPrevista?: string;
+
+  @IsOptional()
+  @IsDateString()
+  fechaEntrega?: string;
+
+  @IsOptional()
+  @IsEnum(EstadoPedido)
+  estado?: EstadoPedido;
 }
 
-// Dto para actualizar un Pedido: mismos campos pero todos opcionales.
-export class UpdateOrderDto
-{
-    @ValidateIf(ifDefined)
-    @IsString()
-    @IsNotEmpty()
-    prioridad? : string;
+/**
+ * DTO para actualizar un pedido.
+ * Todos los campos son opcionales; solo se actualiza lo que se envía.
+ */
+export class UpdateOrderDto {
+  @IsOptional()
+  @IsEnum(Prioridad)
+  prioridad?: Prioridad;
 
-    @ValidateIf(ifDefined)
-    @IsString()
-    @IsNotEmpty()
-    tipoEntrega? : string;
+  @IsOptional()
+  @IsEnum(TipoPedido)
+  tipoEntrega?: TipoPedido;
 
-    @ValidateIf(ifDefined)
-    @IsString()
-    @IsNotEmpty()
-    zona? : string;
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  destinatario?: string;
 
-    @ValidateIf(ifDefined)
-    @IsInt()
-    @IsPositive()
-    idCentro? : number;
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  direccion?: string;
 
-    @ValidateIf(ifDefined)
-    @IsInt()
-    @IsPositive()
-    idCoordinador? : number;
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  idCentro?: number;
 
-    @ValidateIf(ifDefined)
-    @IsDateString()
-    fechaCreado? : string;
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  idCoordinador?: number;
 
-    @ValidateIf(ifDefined)
-    @IsDateString()
-    fechaLimite? : string;
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  idZona?: number;
 
-    @ValidateIf(ifDefined)
-    @IsEnum(Estado_Pedido)
-    estado? : Estado_Pedido;
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  idParada?: number;
 
-    @ValidateIf(ifDefined)
-    @IsString()
-    @IsNotEmpty()
-    destinatario? : string;
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  idRuta?: number;
 
-    @ValidateIf(ifDefined)
-    @IsString()
-    @IsNotEmpty()
-    direccion? : string;
+  @IsOptional()
+  @IsDateString()
+  fechaPrevista?: string;
+
+  @IsOptional()
+  @IsDateString()
+  fechaEntrega?: string;
+
+  @IsOptional()
+  @IsEnum(EstadoPedido)
+  estado?: EstadoPedido;
 }
 
-// Dto para filtrar el listado de pedidos (query params).
-export class FilterOrderDto
-{
-    @IsOptional()
-    @IsEnum(Estado_Pedido)
-    estado? : Estado_Pedido;
+/**
+ * DTO para filtrar el listado de pedidos.
+ */
+export class FilterOrderDto {
+  @IsOptional()
+  @IsEnum(EstadoPedido)
+  estado?: EstadoPedido;
 }
