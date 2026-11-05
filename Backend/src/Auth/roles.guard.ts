@@ -1,25 +1,34 @@
-import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RolUser } from '../generated/prisma/client.js';
+import { ROLES_KEY, RolEfectivo } from './roles.js';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-    constructor(private reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
-    canActivate(context: ExecutionContext): boolean {
-        const requiredRoles = this.reflector.getAllAndOverride<RolUser[]>('roles', [
-            context.getHandler(),
-            context.getClass(),
-        ]);
-        
-        if (!requiredRoles) return true;
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.getAllAndOverride<RolEfectivo[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
-        const { user } = context.switchToHttp().getRequest();
-        
-        if (!user || !requiredRoles.includes(user.rol)) {
-            throw new ForbiddenException('No tienes permisos para realizar esta acción');
-        }
-        
-        return true;
+    if (!requiredRoles?.length) {
+      return true;
     }
+
+    const { user } = context.switchToHttp().getRequest();
+
+    if (!user || !requiredRoles.includes(user.rol)) {
+      throw new ForbiddenException(
+        'No tienes permisos para realizar esta acción',
+      );
+    }
+
+    return true;
+  }
 }

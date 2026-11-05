@@ -7,24 +7,19 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Req,
-  UseGuards,
+  Req
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { CentroService } from './Centro.service.js';
 import { CreateCentroDto, UpdateCentroDto } from './dto/Centro.dto.js';
-import { RolesGuard } from '../Auth/roles.guard.js';
 import { Roles } from '../Auth/roles.decorator.js';
-import { RolUser } from '../generated/prisma/client.js';
+import { RolEfectivo } from '../Auth/roles.js';
 
 @Controller('centro')
-@UseGuards(AuthGuard('jwt'))
 export class CentroController {
   constructor(private centroService: CentroService) {}
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles(RolUser.COORDINADOR)
+  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.SUPERVISOR, RolEfectivo.ADMINISTRADOR)
   create(@Body() dto: CreateCentroDto, @Req() req: any) {
     return this.centroService.create(dto, req.user.userId);
   }
@@ -40,8 +35,7 @@ export class CentroController {
   }
 
   @Put(':id')
-  @UseGuards(RolesGuard)
-  @Roles(RolUser.COORDINADOR)
+  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.SUPERVISOR, RolEfectivo.ADMINISTRADOR)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCentroDto,
@@ -51,8 +45,7 @@ export class CentroController {
   }
 
   @Delete(':id')
-  @UseGuards(RolesGuard)
-  @Roles(RolUser.COORDINADOR)
+  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.SUPERVISOR, RolEfectivo.ADMINISTRADOR)
   remove(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.centroService.remove(id, req.user.userId);
   }
