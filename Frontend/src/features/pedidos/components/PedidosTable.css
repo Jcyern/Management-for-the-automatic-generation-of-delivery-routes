@@ -1,0 +1,147 @@
+
+
+.table-wrapper {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table-empty {
+  padding: 3rem;
+  text-align: center;
+  color: #718096;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.pedidos-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.pedidos-table thead {
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pedidos-table th {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  user-select: none;
+}
+
+.pedidos-table th.sortable {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.pedidos-table th.sortable:hover {
+  color: #4ecdc4;
+}
+
+.th-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+
+.pedidos-table tbody tr {
+  border-bottom: 1px solid #edf2f7;
+  transition: background 0.12s;
+}
+
+.pedidos-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.pedidos-table tbody tr:hover {
+  background: #f7fff7;
+}
+
+.pedidos-table td {
+  padding: 0.85rem 1rem;
+  color: #2d3748;
+  vertical-align: middle;
+}
+
+.cell-id {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+.cell-destinatario {
+  font-weight: 600;
+  color: #292f36;
+}
+
+.cell-direccion {
+  font-size: 0.78rem;
+  color: #718096;
+  margin-top: 0.1rem;
+}
+
+.cell-fecha {
+  font-size: 0.85rem;
+  color: #718096;
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge--baja {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.badge--media {
+  background: rgba(255, 230, 109, 0.35);
+  color: #7a5c00;
+}
+
+.badge--urgente {
+  background: rgba(255, 107, 107, 0.18);
+  color: #c53030;
+}
+
+.badge--estado-pendiente {
+  background: #ebf8ff;
+  color: #2b6cb0;
+}
+
+.badge--estado-en_ruta {
+  background: rgba(78, 205, 196, 0.18);
+  color: #2ba89e;
+}
+
+.badge--estado-entregado {
+  background: #c6f6d5;
+  color: #276749;
+}
+
+.badge--estado-fallido {
+  background: #fed7d7;
+  color: #822727;
+}
+
+.badge--estado-reprogramado {
+  background: #fef3c7;
+  color: #92400e;
+}

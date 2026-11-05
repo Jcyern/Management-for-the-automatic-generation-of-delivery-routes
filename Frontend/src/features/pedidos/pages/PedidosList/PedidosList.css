@@ -1,0 +1,62 @@
+
+.pedidos-list {
+  max-width: 1100px;
+}
+
+.pedidos-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pedidos-list-header h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #292f36;
+  margin: 0;
+}
+
+.pedidos-list-subtitle {
+  font-size: 0.9rem;
+  color: #718096;
+  margin: 0.25rem 0 0 0;
+}
+
+.pedidos-list-new {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: linear-gradient(135deg, #4ecdc4, #2ba89e);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.pedidos-list-new:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(78, 205, 196, 0.4);
+}
+
+.pedidos-list-status {
+  padding: 3rem;
+  text-align: center;
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.pedidos-list-error {
+  padding: 1rem;
+  background: #fed7d7;
+  color: #c53030;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  border-left: 3px solid #ff6b6b;
+}
