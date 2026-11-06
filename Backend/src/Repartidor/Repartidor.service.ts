@@ -15,14 +15,16 @@ export class RepartidorService {
     const userExiste = await this.prisma.usuario.findUnique({ where: { id: dto.idUser } });
     if (!userExiste) throw new BadRequestException(`El usuario con ID ${dto.idUser} no existe.`);
 
-    return this.prisma.repartidor.create({
-      data: {
-        ...data,
-        centros: centrosIds ? { connect: centrosIds.map(id => ({ id })) } : undefined,
-      },
-      include: { flota: true, centros: true }
-    });
-  }
+  return this.prisma.repartidor.create({
+        data: {
+          ...data,
+          ...(centrosIds !== undefined
+            ? { centros: { connect: centrosIds.map((id) => ({ id })) } }
+            : {}),
+        },
+        include: { flota: true, centros: true },
+      });
+    }
 
   async findAll() {
     return this.prisma.repartidor.findMany({
@@ -50,13 +52,15 @@ export class RepartidorService {
     }
 
     return this.prisma.repartidor.update({
-      where: { idUser },
-      data: {
-        ...data,
-        centros: centrosIds ? { set: centrosIds.map(id => ({ id })) } : undefined,
-      },
-      include: { flota: true, centros: true }
-    });
+          where: { idUser },
+          data: {
+            ...data,
+            ...(centrosIds !== undefined
+              ? { centros: { set: centrosIds.map((id) => ({ id })) } }
+              : {}),
+          },
+          include: { flota: true, centros: true },
+        });
   }
 
   async remove(idUser: number) {
