@@ -45,16 +45,16 @@ export class CentroService {
     }
 
     // Crea el centro, asocia zonas y auto-asigna al coordinador creador
-    return this.prisma.centroDeDistribucion.create({
-      data: {
-        ...data,
-        zonas: zonasIds
-          ? { connect: zonasIds.map((id) => ({ id })) }
-          : undefined,
-        coordinadorCrearRutas: { connect: { idUser: userId } },
-      },
-      include: { zonas: true },
-    });
+  return this.prisma.centroDeDistribucion.create({
+        data: {
+          ...data,
+          ...(zonasIds !== undefined
+            ? { zonas: { connect: zonasIds.map((id) => ({ id })) } }
+            : {}),
+          coordinadorCrearRutas: { connect: { idUser: userId } },
+        },
+        include: { zonas: true },
+      });
   }
 
   async findAll(userId: number) {
@@ -98,14 +98,16 @@ export class CentroService {
       }
     }
 
-    return this.prisma.centroDeDistribucion.update({
-      where: { id },
-      data: {
-        ...data,
-        zonas: zonasIds ? { set: zonasIds.map((id) => ({ id })) } : undefined,
-      },
-      include: { zonas: true },
-    });
+  return this.prisma.centroDeDistribucion.update({
+        where: { id },
+        data: {
+          ...data,
+          ...(zonasIds !== undefined
+            ? { zonas: { set: zonasIds.map((id) => ({ id })) } }
+            : {}),
+        },
+        include: { zonas: true },
+      });  
   }
 
   async remove(id: number, userId: number) {
