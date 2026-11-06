@@ -12,6 +12,7 @@ import { CentroModule } from './Centro/Centro.module.js';
 import { ZonaModule } from './Zona/Zona.module.js';
 import { FlotaModule } from './Flota/Flota.module.js';
 import { VehiculoModule } from './Vehiculo/Vehiculo.module.js';
+import { RepartidorModule } from './Repartidor/Repartidor.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -26,7 +27,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     Neo4jModule, GrafoModule,
     PrismaModule, AuthModule, OrderModule,
     CentroModule, ZonaModule, FlotaModule,
-    VehiculoModule
+    VehiculoModule, RepartidorModule
   ],
   controllers: [AppController],
   providers: [AppService],
