@@ -40,26 +40,28 @@ export class VehiculoService {
   }
 
   async update(id: number, dto: UpdateVehiculoDto) {
-    await this.findOne(id);
+      await this.findOne(id);
 
-    if (dto.flotaID) {
-      const flotaExiste = await this.prisma.flota.findUnique({
-        where: { id: dto.flotaID },
-      });
-      if (!flotaExiste) {
-        throw new BadRequestException(`La flota con ID ${dto.flotaID} no existe.`);
+      if (dto.flotaID !== undefined) {
+        const flotaExiste = await this.prisma.flota.findUnique({
+          where: { id: dto.flotaID },
+        });
+        if (!flotaExiste) {
+          throw new BadRequestException(`La flota con ID ${dto.flotaID} no existe.`);
+        }
       }
-    }
 
-    return this.prisma.vehiculo.update({
-      where: { id },
-      data: {
-        capacidad: dto.capacidad,
-        flota: dto.flotaID ? { connect: { id: dto.flotaID } } : undefined
-      },
-      include: { flota: true }
-    });
-  }
+      return this.prisma.vehiculo.update({
+        where: { id },
+        data: {
+          ...(dto.capacidad !== undefined ? { capacidad: dto.capacidad } : {}),
+          ...(dto.flotaID !== undefined
+            ? { flota: { connect: { id: dto.flotaID } } }
+            : {}),
+        },
+        include: { flota: true },
+      });
+    }
 
   async remove(id: number) {
     const vehiculo = await this.prisma.vehiculo.findUnique({
