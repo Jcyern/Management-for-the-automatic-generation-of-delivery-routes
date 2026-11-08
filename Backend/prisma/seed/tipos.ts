@@ -1,5 +1,3 @@
-import { Repartidor, RolCoordinador } from "../../src/generated/prisma/client.js";
-
 export type RolCoordinadorSeed = 'ADMINISTRADOR' | 'LOGISTICO' | 'SUPERVISOR' ;
 
 
@@ -21,12 +19,7 @@ export type CoordinadorSeed = UsuarioBaseSeed & {
 export type RepartidorSeed = UsuarioBaseSeed & {
     roluser: "REPARTIDOR"
     edad: number
-    idFlota: number
+    flota: string
 }
 
 export type UsuarioSeed = CoordinadorSeed | RepartidorSeed
-
-
-export type FlotaSeed ={
-    nombre: string;
-}

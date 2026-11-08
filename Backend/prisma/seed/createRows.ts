@@ -4,8 +4,9 @@ import {
   PrismaClient,
   RolUser,
 } from '../../src/generated/prisma/client.js';
-import { usuarios } from './data/usuarios.js';
+import { flotas, usuarios } from './data/datos.js';
 import type { CoordinadorSeed, RepartidorSeed, UsuarioSeed} from './tipos.js';
+import { capitalizeCase } from '../../src/common/text.js';
 
 
 const BCRYPT_ROUNDS = 12;
@@ -96,32 +97,62 @@ async function crearPerfilCoordinador(
 }
 
 
-async function createRepartidor(tx : Prisma.TransactionClient, iduser: number, datos: RepartidorSeed) {
-  const flota = await tx.flota.findUnique({where:{id:datos.idFlota }})
+async function createRepartidor(
+  tx: Prisma.TransactionClient,
+  iduser: number,
+  datos: RepartidorSeed,
+) {
+  const nombreFlota = capitalizeCase(datos.flota);
 
-  if(flota === null){
-    throw new Error(`La flota con ${datos.idFlota} del repartidor ${datos.nombre} que se quiere crear  , no existe en la tabla Flota de la BD`)
+  const flota = await tx.flota.findFirst({
+    where: {
+      nombre: {
+        equals: nombreFlota,
+        mode: 'insensitive',
+      },
+    },
+  });
+
+  if (flota === null) {
+    throw new Error(
+      `La flota "${nombreFlota}" del repartidor ${datos.nombre} no existe en la tabla Flota de la BD`,
+    );
   }
 
-  else{
-    //crear el repartidor entonces
-
-    const repartidor = await tx.repartidor.create(
-    { data:{
-      idUser: iduser, 
-      idFlota : datos.idFlota,
+  await tx.repartidor.create({
+    data: {
+      idUser: iduser,
+      idFlota: flota.id,
       nombre: datos.nombre,
       edad: datos.edad,
-    }
-  })  
-  }
+    },
+  });
 }
 
 
 
-export async function  CreateFlota(prisma: PrismaClient){
+export async function CreateFlota(prisma: PrismaClient) {
+  for (const flota of flotas) {
+    const nombre = capitalizeCase(flota);
 
-  
-  //El cirterio que se va a tomar es si ese Nombre ya existe en la tabla de flotas
-  //const exite = await prisma.flota.findFirst({where:{nombre: }})
+    const existe = await prisma.flota.findFirst({
+      where: {
+        nombre: {
+          equals: nombre,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (existe) {
+      console.log(`[omitido] flota ${nombre} ya existe`);
+      continue;
+    }
+
+    await prisma.flota.create({
+      data: { nombre },
+    });
+
+    console.log(`[creado] flota ${nombre}`);
+  }
 }
