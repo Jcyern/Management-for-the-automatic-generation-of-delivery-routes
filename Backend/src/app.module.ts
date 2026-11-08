@@ -13,6 +13,8 @@ import { ZonaModule } from './Zona/Zona.module.js';
 import { FlotaModule } from './Flota/Flota.module.js';
 import { VehiculoModule } from './Vehiculo/Vehiculo.module.js';
 import { RepartidorModule } from './Repartidor/Repartidor.module.js';
+import { RedisModule } from './redis/redis.module.js';
+import { TiempoRealModule } from './tiempo-real/tiempo-real.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -24,10 +26,18 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       appSecret: 'YOUR_APP_SECRET',
       serviceId: 'management-for-the-automatic-generation-of-delivery-routes',
     }),
-    Neo4jModule, GrafoModule,
-    PrismaModule, AuthModule, OrderModule,
-    CentroModule, ZonaModule, FlotaModule,
-    VehiculoModule, RepartidorModule
+    Neo4jModule,
+    GrafoModule,
+    RedisModule,
+    TiempoRealModule,
+    PrismaModule,
+    AuthModule,
+    OrderModule,
+    CentroModule,
+    ZonaModule,
+    FlotaModule,
+    VehiculoModule,
+    RepartidorModule,
   ],
   controllers: [AppController],
   providers: [AppService],
