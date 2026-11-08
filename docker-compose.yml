@@ -21,5 +21,16 @@ services:
       - neo4j_data:/data
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    container_name: rutas-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
 volumes:
   neo4j_data:
+  redis_data:
