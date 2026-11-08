@@ -1,7 +1,8 @@
 # Modelo de grafo — Red de conexiones (Neo4j)
 
-Documenta el modelo de grafo del **RF-6 / Issue #6**: zonas, vías, distancias y
-tiempos como grafo, no como tablas relacionales.
+Documenta el modelo de grafo del **RF-6 / Issue #6** (zonas, vías, distancias y
+tiempos como grafo, no como tablas relacionales) y las consultas de camino
+óptimo, rutas alternativas y métricas del **RF-5 / Issue #33**.
 
 ## Visión general
 
@@ -60,15 +61,28 @@ CREATE INDEX centro_nombre IF NOT EXISTS FOR (c:Centro) ON (c.nombre);
 ## Carga inicial (seed)
 
 - `Backend/neo4j/seed.cypher` — zonas, centros, conexiones y cobertura de ejemplo.
+  Incluye la **`Zona Aislada`** (`id: 7`) sin conexiones, para reproducir el caso
+  "no existe ruta / no existe alternativa" sin tener que borrar datos a mano.
 - `Backend/neo4j/seed.mjs` — runner que aplica `schema.cypher` + `seed.cypher`
   usando `neo4j-driver` y las credenciales de `Backend/.env`.
-- Comando: `npm run seed:neo4j` (desde `Backend/`).
+- Comando: `npm run seed:neo4j` (desde `Backend/`). `npm run seed` aplica además
+  el seed de Redis (ver [`redis-modelo.md`](./redis-modelo.md)).
+
+La zona 7 se borra con `DETACH DELETE` antes de recrearse en cada seed, así que
+siempre queda sin relaciones `CONECTA` ni `CUBRE`.
+
+```cypher
+MATCH (z:Zona {id: 7}) DETACH DELETE z;
+```
 
 ## Integración con NestJS
 
 - `Backend/src/neo4j/neo4j.service.ts` — driver oficial `neo4j-driver`; valida la
   conexión al iniciar (`verifyConnectivity`) y expone `read()` / `write()`.
 - `Backend/src/neo4j/neo4j.module.ts` — módulo `@Global` que provee `Neo4jService`.
+- `Backend/src/grafo/grafo.service.ts` — consultas `caminoMasCorto` y
+  `rutasAlternativas`, cálculo de métricas y 404.
+- `Backend/src/grafo/grafo.controller.ts` — endpoints REST `/grafo/...`.
 
 Variables de entorno (`Backend/.env`):
 
@@ -83,22 +97,66 @@ Variables de entorno (`Backend/.env`):
 
 | Método | Ruta | Query | Respuesta |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/grafo/zonas/:origenId/camino-mas-corto` | `destinoId` (req), `criterio` (`distancia`\|`tiempo`, def. `distancia`) | `{ zonas, costo, saltos }` |
-| `GET` | `/grafo/zonas/:origenId/rutas-alternativas` | `destinoId` (req), `criterio` (def. `distancia`), `limite` (def. `3`, máx. `10`) | `[{ zonas, costo, saltos }]` |
+| `GET` | `/grafo/zonas/:origenId/camino-mas-corto` | `destinoId` (req), `criterio` (`distancia`\|`tiempo`, def. `distancia`) | `{ zonas, distanciaKm, tiempoMin, costo, saltos }` |
+| `GET` | `/grafo/zonas/:origenId/rutas-alternativas` | `destinoId` (req), `criterio` (def. `distancia`), `limite` (def. `3`, máx. `10`) | `[{ zonas, distanciaKm, tiempoMin, costo, saltos }]` |
+
+Campos de la respuesta:
+
+| Campo | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `zonas` | `number[]` | Ids de las zonas en el orden del recorrido |
+| `distanciaKm` | `number` | Suma de `distanciaKm` de todas las relaciones del camino |
+| `tiempoMin` | `number` | Suma de `tiempoMin` de todas las relaciones del camino |
+| `costo` | `number` | Valor del criterio elegido (`distanciaKm` o `tiempoMin`); se conserva por compatibilidad |
+| `saltos` | `number` | Cantidad de relaciones del camino |
+
+`distanciaKm` y `tiempoMin` se devuelven **siempre juntos**, aunque el criterio
+de optimización sea solo uno. `costo` es el valor del criterio que se pidió.
+
+### Errores
+
+| Situación | Respuesta |
+| :--- | :--- |
+| `criterio` distinto de `distancia`/`tiempo` | `400 Bad Request` |
+| `destinoId` ausente o no numérico | `400 Bad Request` |
+| No hay camino entre origen y destino | `404 Not Found` — `No hay camino entre las zonas X e Y` |
+| No hay rutas alternativas | `404 Not Found` — `No existen rutas alternativas entre las zonas X e Y` |
+
+### Autenticación
+
+`AuthModule` registra `JwtAuthGuard` y `RolesGuard` como `APP_GUARD` globales, así
+que **todas** las rutas exigen JWT salvo las marcadas con `@Public()`
+(`POST /auth/login` y `POST /SignIn`). Por eso los ejemplos incluyen la cabecera
+`Authorization`.
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@deliveryroutes.com","password":"Admin123!"}' \
+  | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+```
 
 Ejemplos:
 
 ```bash
-curl "http://localhost:3000/grafo/zonas/1/camino-mas-corto?destinoId=2&criterio=distancia"
-# { "zonas": [1,5,2], "costo": 11, "saltos": 2 }
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3000/grafo/zonas/1/camino-mas-corto?destinoId=2&criterio=distancia"
+# { "zonas": [1,5,2], "distanciaKm": 11, "tiempoMin": 27, "costo": 11, "saltos": 2 }
 
-curl "http://localhost:3000/grafo/zonas/1/camino-mas-corto?destinoId=2&criterio=tiempo"
-# { "zonas": [1,5,2], "costo": 27, "saltos": 2 }
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3000/grafo/zonas/1/camino-mas-corto?destinoId=2&criterio=tiempo"
+# { "zonas": [1,5,2], "distanciaKm": 11, "tiempoMin": 27, "costo": 27, "saltos": 2 }
 
-curl "http://localhost:3000/grafo/zonas/1/rutas-alternativas?destinoId=2&limite=3"
-# [ { "zonas":[1,5,2], "costo":11, "saltos":2 },
-#   { "zonas":[1,5,6,2], "costo":13, "saltos":3 },
-#   { "zonas":[1,4,6,2], "costo":15, "saltos":3 } ]
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3000/grafo/zonas/1/rutas-alternativas?destinoId=2&limite=3"
+# [ { "zonas":[1,5,2],   "distanciaKm":11, "tiempoMin":27, "costo":11, "saltos":2 },
+#   { "zonas":[1,5,6,2], "distanciaKm":13, "tiempoMin":32, "costo":13, "saltos":3 },
+#   { "zonas":[1,4,6,2], "distanciaKm":15, "tiempoMin":35, "costo":15, "saltos":3 } ]
+
+curl -i -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3000/grafo/zonas/1/rutas-alternativas?destinoId=7"
+# HTTP/1.1 404 Not Found
+# {"message":"No existen rutas alternativas entre las zonas 1 y 7","error":"Not Found","statusCode":404}
 ```
 
 ## Consultas Cypher
@@ -109,8 +167,19 @@ Camino más corto ponderado (APOC):
 MATCH (a:Zona {id: $origen}), (b:Zona {id: $destino})
 CALL apoc.algo.dijkstra(a, b, 'CONECTA', 'distanciaKm')
 YIELD path, weight
-RETURN [n IN nodes(path) | n.id] AS zonas, weight AS costo, length(path) AS saltos;
+WITH path, weight,
+     reduce(d = 0.0, r IN relationships(path) | d + toFloat(r.distanciaKm)) AS distancia,
+     reduce(t = 0.0, r IN relationships(path) | t + toFloat(r.tiempoMin)) AS tiempo
+RETURN [n IN nodes(path) | n.id] AS zonas,
+       round(distancia * 100) / 100 AS distanciaKm,
+       round(tiempo * 100) / 100 AS tiempoMin,
+       round(weight * 100) / 100 AS costo,
+       length(path) AS saltos;
 ```
+
+> EL peso de `apoc.algo.dijkstra` se sustituye dinámicamente por
+> `distanciaKm` o `tiempoMin` según el `criterio`. El valor nunca se interpola
+> desde la entrada del usuario: `GrafoService` lo obtiene de un mapa fijo.
 
 Rutas alternativas (APOC):
 
@@ -118,10 +187,23 @@ Rutas alternativas (APOC):
 MATCH (a:Zona {id: $origen}), (b:Zona {id: $destino})
 CALL apoc.algo.allSimplePaths(a, b, 'CONECTA', 6)
 YIELD path
-WITH path, reduce(total = 0.0, r IN relationships(path) | total + toFloat(r['distanciaKm'])) AS costo
-RETURN [n IN nodes(path) | n.id] AS zonas, costo, length(path) AS saltos
-ORDER BY costo ASC LIMIT 3;
+WITH path,
+     reduce(d = 0.0, r IN relationships(path) | d + toFloat(r.distanciaKm)) AS distancia,
+     reduce(t = 0.0, r IN relationships(path) | t + toFloat(r.tiempoMin)) AS tiempo
+WITH path, distancia, tiempo,
+     CASE $peso WHEN 'distanciaKm' THEN distancia ELSE tiempo END AS costo
+RETURN [n IN nodes(path) | n.id] AS zonas,
+       round(distancia * 100) / 100 AS distanciaKm,
+       round(tiempo * 100) / 100 AS tiempoMin,
+       round(costo * 100) / 100 AS costo,
+       length(path) AS saltos
+ORDER BY costo ASC
+LIMIT $limite;
 ```
+
+- `MAX_SALTOS = 6` (límite de profundidad de `allSimplePaths`).
+- `limite` se acota en el servicio entre `1` y `10`.
+- Si no se obtiene ninguna fila, el servicio lanza `NotFoundException` (404).
 
 ## Levantar Neo4j y verificar
 
@@ -131,10 +213,23 @@ docker exec rutas-neo4j cypher-shell -u neo4j -p password "RETURN apoc.version()
 docker exec rutas-neo4j cypher-shell -u neo4j -p password "MATCH (n) RETURN labels(n) AS tipo, count(*) AS total"
 ```
 
+Comprobar que la zona aislada existe y no tiene conexiones:
+
+```bash
+docker exec rutas-neo4j cypher-shell -u neo4j -p password \
+  "MATCH (z:Zona {id: 7}) RETURN z.nombre AS nombre, COUNT { (z)--() } AS conexiones"
+# "Zona Aislada", 0
+```
+
+> En Neo4j 5 `size((z)--())` ya no es válido: hay que usar `COUNT { (z)--() }`
+> o `OPTIONAL MATCH ... count(...)`.
+
 > Requiere el plugin APOC (`NEO4J_PLUGINS: '["apoc"]'` en `docker-compose.yml`).
 
 ## Referencias
 
 - Issue #6 — RF-6 (red de conexiones en Neo4j).
+- Issue #33 — RF-5 (rutas alternativas, métricas y Redis).
 - `Backend/neo4j/schema.cypher`, `Backend/neo4j/seed.cypher`.
 - `Backend/src/neo4j/`, `Backend/src/grafo/`.
+- [`redis-modelo.md`](./redis-modelo.md) — datos en tiempo real en Redis.

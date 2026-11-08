@@ -80,6 +80,9 @@ Ambos comandos ejecutan:
 tsx prisma/seed.ts
 ```
 
+> `npm run seed` (sin sufijo) **no** ejecuta este seed: aplica los seeds de Neo4j
+> y Redis. Ver [sección 14](#14-seeds-de-neo4j-y-redis).
+
 Antes de ejecutarlo, el archivo `.env` debe tener:
 
 ```env
@@ -346,3 +349,33 @@ npm test
 # Reset completo de la base de desarrollo
 npx prisma migrate reset
 ```
+
+## 14. Seeds de Neo4j y Redis
+
+Además del seed de PostgreSQL, el proyecto tiene seeds para los otros dos
+motores. Se ejecutan desde `Backend/`:
+
+| Comando | Qué hace |
+| :--- | :--- |
+| `npm run seed:admin` | Seed de PostgreSQL (flotas y usuarios) |
+| `npm run seed:neo4j` | Aplica `neo4j/schema.cypher` + `neo4j/seed.cypher` |
+| `npm run seed:redis` | Carga disponibilidad y paradas de ejemplo en Redis |
+| `npm run seed` | `seed:neo4j` seguido de `seed:redis` |
+
+Antes de ejecutarlos deben estar levantados los contenedores:
+
+```bash
+docker compose up -d neo4j redis
+```
+
+El seed de Neo4j incluye la `Zona Aislada` (`id: 7`) sin conexiones, para probar
+el 404 de rutas alternativas. El de Redis carga tres repartidores
+(`1` y `3` disponibles, `2` no) y el estado de las paradas de la ruta `1`.
+
+No confundir con la propiedad `"prisma": { "seed": "tsx prisma/seed.ts" }` de
+`package.json`: esa solo la usa `npx prisma db seed`.
+
+Detalle de claves, TTL y verificación:
+
+- [`neo4j-modelo.md`](./neo4j-modelo.md)
+- [`redis-modelo.md`](./redis-modelo.md)
