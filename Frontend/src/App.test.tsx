@@ -47,6 +47,7 @@ const mockedAuthReturn = (
   user: isAuthenticated
     ? { id: '1', name: 'Test', email: 'test@test.com', role: 'coordinador' as const }
     : null,
+  token: isAuthenticated ? 'test-token' : null,
   login: vi.fn(),
   logout: vi.fn(),
 });

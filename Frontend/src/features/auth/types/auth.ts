@@ -21,11 +21,25 @@ export interface User {
 }
 
 /**
+ * Result of a successful authentication against the backend.
+ */
+export interface LoginResult {
+  /** Authenticated user mapped to the frontend shape. */
+  user: User;
+
+  /** JWT access token used to authorize subsequent API requests. */
+  token: string;
+}
+
+/**
  * Contract of the authentication context exposed to the entire application.
  */
 export interface AuthContextType {
   /** Currently authenticated user, or `null` if there is no active session. */
   user: User | null;
+
+  /** JWT access token of the active session, or `null` without a session. */
+  token: string | null;
 
   /** Whether there is an authenticated user right now. */
   isAuthenticated: boolean;

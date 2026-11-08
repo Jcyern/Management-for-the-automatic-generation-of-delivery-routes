@@ -76,7 +76,10 @@ describe('Login', () => {
   });
 
   it('should call login and navigate on successful submit', async () => {
-    vi.mocked(authService.login).mockResolvedValue(mockUser);
+    vi.mocked(authService.login).mockResolvedValue({
+      user: mockUser,
+      token: 'jwt-token',
+    });
 
     renderLogin();
 

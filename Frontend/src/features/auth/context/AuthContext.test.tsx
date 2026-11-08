@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { AuthProvider, useAuth } from './AuthContext';
 import { authService } from '../services/authService';
-import type { User } from '../types/auth';
+import type { LoginResult, User } from '../types/auth';
 
 vi.mock('../services/authService', () => ({
   authService: {
@@ -29,6 +29,11 @@ const mockUser: User = {
   role: 'coordinador',
 };
 
+const mockLoginResult: LoginResult = {
+  user: mockUser,
+  token: 'jwt-token',
+};
+
 describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,13 +44,14 @@ describe('useAuth', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     expect(result.current.user).toBeNull();
+    expect(result.current.token).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
   });
 
-  it('should login and set the user', async () => {
-    vi.mocked(authService.login).mockResolvedValue(mockUser);
+  it('should login and store the user and token', async () => {
+    vi.mocked(authService.login).mockResolvedValue(mockLoginResult);
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -55,12 +61,38 @@ describe('useAuth', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.user).toEqual(mockUser);
+    expect(result.current.token).toBe('jwt-token');
     expect(result.current.isAuthenticated).toBe(true);
     expect(localStorage.getItem('user')).toBe(JSON.stringify(mockUser));
+    expect(localStorage.getItem('token')).toBe('jwt-token');
   });
 
-  it('should logout and clear the user', async () => {
+  it('should restore the session from localStorage', async () => {
     localStorage.setItem('user', JSON.stringify(mockUser));
+    localStorage.setItem('token', 'stored-token');
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.user).toEqual(mockUser);
+    expect(result.current.token).toBe('stored-token');
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it('should discard a stored session without a token', async () => {
+    localStorage.setItem('user', JSON.stringify(mockUser));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.user).toBeNull();
+    expect(result.current.token).toBeNull();
+    expect(localStorage.getItem('user')).toBeNull();
+  });
+
+  it('should logout and clear the user and token', async () => {
+    localStorage.setItem('user', JSON.stringify(mockUser));
+    localStorage.setItem('token', 'stored-token');
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -72,6 +104,8 @@ describe('useAuth', () => {
     });
 
     expect(result.current.user).toBeNull();
+    expect(result.current.token).toBeNull();
     expect(localStorage.getItem('user')).toBeNull();
+    expect(localStorage.getItem('token')).toBeNull();
   });
 });

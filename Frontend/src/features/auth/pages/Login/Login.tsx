@@ -218,10 +218,10 @@ export function Login() {
         <div className="login-hint">
           <p>Usuarios de prueba:</p>
           <ul>
-            <li>coordinador@test.com / password123</li>
-            <li>repartidor@test.com / password123</li>
-            <li>supervisor@test.com / password123</li>
-            <li>admin@test.com / password123</li>
+            <li>admin@deliveryroutes.com / Admin123!</li>
+            <li>logic@deliveryroutes.com / Logic123!</li>
+            <li>superv@deliveryroutes.com / Superv123!</li>
+            <li>repartidor@deliveryroutes.com / Repartidor123!</li>
           </ul>
         </div>
       </div>

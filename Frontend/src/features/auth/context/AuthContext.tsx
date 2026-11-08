@@ -18,9 +18,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 /**
  * Authentication context provider.
  *
- * Wraps the whole application and exposes the current user, the session
- * state, and the login/logout functions to any child component through
- * the `useAuth` hook.
+ * Wraps the whole application and exposes the current user, the JWT token,
+ * the session state, and the login/logout functions to any child component
+ * through the `useAuth` hook.
  *
  * Persists the session in `localStorage` so it survives page reloads.
  *
@@ -28,13 +28,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      setUser(JSON.parse(stored));
+    const storedUser = localStorage.getItem('user');
+    const storedToken = localStorage.getItem('token');
+
+    if (storedUser && storedToken) {
+      try {
+        setUser(JSON.parse(storedUser));
+        setToken(storedToken);
+      } catch {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    } else {
+      // A session without a token cannot authenticate API requests.
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
     }
+
     setIsLoading(false);
   }, []);
 
@@ -46,22 +60,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * @throws Error if the credentials are invalid.
    */
   const login = async (email: string, password: string) => {
-    const loggedUser = await authService.login(email, password);
+    const { user: loggedUser, token: accessToken } = await authService.login(
+      email,
+      password,
+    );
+
     setUser(loggedUser);
+    setToken(accessToken);
     localStorage.setItem('user', JSON.stringify(loggedUser));
+    localStorage.setItem('token', accessToken);
   };
 
   /** Logs out the current user and clears the local storage. */
   const logout = () => {
     setUser(null);
+    setToken(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
+        token,
+        isAuthenticated: !!user && !!token,
         isLoading,
         login,
         logout,
