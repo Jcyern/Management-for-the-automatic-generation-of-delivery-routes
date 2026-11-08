@@ -4,6 +4,8 @@ export type Criterio = (typeof CRITERIOS)[number];
 
 export interface CaminoResult {
   zonas: number[];
+  distanciaKm: number;
+  tiempoMin: number;
   costo: number;
   saltos: number;
 }
