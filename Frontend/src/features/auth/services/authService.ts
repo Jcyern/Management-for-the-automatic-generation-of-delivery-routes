@@ -72,7 +72,7 @@ export const authService = {
         id: String(data.user.id),
         email: data.user.correo,
         name: data.user.nombre || 'Usuario',
-        role: ROLE_MAP[data.user.rolEfectivo] ?? 'coordinador',
+        role: ROLE_MAP[data.user.rolEfectivo] ?? 'logistico',
       },
       token: data.access_token,
     };

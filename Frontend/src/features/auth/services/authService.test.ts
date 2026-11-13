@@ -62,7 +62,7 @@ describe('authService.login', () => {
         id: '7',
         email: 'coordinador@test.com',
         name: 'Ana Coordinadora',
-        role: 'coordinador',
+        role: 'logistico',
       },
       token: 'jwt-token',
     });
@@ -71,7 +71,7 @@ describe('authService.login', () => {
   it.each([
     ['ADMINISTRADOR', 'admin'],
     ['SUPERVISOR', 'supervisor'],
-    ['LOGISTICO', 'coordinador'],
+    ['LOGISTICO', 'logistico'],
     ['REPARTIDOR', 'repartidor'],
   ])('should map rolEfectivo %s to %s', async (rolEfectivo, expectedRole) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
