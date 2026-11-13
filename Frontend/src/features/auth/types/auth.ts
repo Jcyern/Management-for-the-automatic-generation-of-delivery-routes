@@ -1,7 +1,7 @@
 /**
  * Roles available in the delivery route management system.
  */
-export type UserRole = 'coordinador' | 'repartidor' | 'supervisor' | 'admin';
+export type UserRole = 'logistico' | 'repartidor' | 'supervisor' | 'admin';
 
 /**
  * Represents an authenticated user in the system.
