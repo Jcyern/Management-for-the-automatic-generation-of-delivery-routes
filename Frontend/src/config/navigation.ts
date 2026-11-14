@@ -33,7 +33,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Pedidos',
     path: '/dashboard/pedidos',
     icon: 'Package',
-    allowedRoles: ['logistico', 'supervisor', 'admin'],
+    allowedRoles: ['logistico', 'admin'],
   },
   {
     label: 'Rutas',

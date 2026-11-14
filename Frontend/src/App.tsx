@@ -60,7 +60,7 @@ function AppRoutes() {
         <Route
           path="/dashboard/pedidos"
           element={
-            <RoleRoute allowedRoles={['logistico', 'supervisor', 'admin']}>
+            <RoleRoute allowedRoles={['logistico', 'admin']}>
               <PedidosList />
             </RoleRoute>
           }
