@@ -11,7 +11,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const ROLE_MAP: Record<string, UserRole> = {
   ADMINISTRADOR: 'admin',
   SUPERVISOR: 'supervisor',
-  LOGISTICO: 'coordinador',
+  LOGISTICO: 'logistico',
   REPARTIDOR: 'repartidor',
 };
 
@@ -72,7 +72,7 @@ export const authService = {
         id: String(data.user.id),
         email: data.user.correo,
         name: data.user.nombre || 'Usuario',
-        role: ROLE_MAP[data.user.rolEfectivo] ?? 'coordinador',
+        role: ROLE_MAP[data.user.rolEfectivo] ?? 'logistico',
       },
       token: data.access_token,
     };

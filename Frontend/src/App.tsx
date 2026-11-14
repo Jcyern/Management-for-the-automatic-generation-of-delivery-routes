@@ -60,7 +60,7 @@ function AppRoutes() {
         <Route
           path="/dashboard/pedidos"
           element={
-            <RoleRoute allowedRoles={['coordinador', 'supervisor', 'admin']}>
+            <RoleRoute allowedRoles={['logistico', 'admin']}>
               <PedidosList />
             </RoleRoute>
           }
@@ -68,7 +68,7 @@ function AppRoutes() {
         <Route
           path="/dashboard/rutas"
           element={
-            <RoleRoute allowedRoles={['coordinador', 'supervisor', 'repartidor', 'admin']}>
+            <RoleRoute allowedRoles={['logistico', 'supervisor', 'repartidor', 'admin']}>
               <div>Página de Rutas (por implementar)</div>
             </RoleRoute>
           }
