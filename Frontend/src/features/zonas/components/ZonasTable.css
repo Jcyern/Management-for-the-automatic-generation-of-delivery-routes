@@ -1,0 +1,99 @@
+.zonas-table-wrapper {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.zonas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.zonas-table thead {
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.zonas-table th {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.zonas-table tbody tr {
+  border-bottom: 1px solid #edf2f7;
+  transition: background 0.12s;
+}
+
+.zonas-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.zonas-table tbody tr:hover {
+  background: #f7fff7;
+}
+
+.zonas-table td {
+  padding: 0.85rem 1rem;
+  color: #2d3748;
+  vertical-align: middle;
+}
+
+.zonas-table .cell-id {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #4a5568;
+  width: 80px;
+}
+
+.zonas-table .cell-nombre {
+  font-weight: 600;
+  color: #292f36;
+}
+
+.zonas-table .cell-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #718096;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.icon-button:hover {
+  background: #edf2f7;
+  color: #2d3748;
+}
+
+.icon-button--danger:hover {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.zonas-table-empty {
+  padding: 3rem;
+  text-align: center;
+  color: #718096;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}

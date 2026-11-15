@@ -1,0 +1,89 @@
+.zona-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.zona-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.zona-form .form-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.zona-form .form-group input {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #292f36;
+  background: white;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.zona-form .form-group input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.15);
+}
+
+.zona-form .form-group input:disabled {
+  background: #f7fafc;
+  cursor: not-allowed;
+}
+
+.zona-form .form-error {
+  font-size: 0.78rem;
+  color: #c53030;
+}
+
+.zona-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.zona-form-actions .btn-secondary,
+.zona-form-actions .btn-primary {
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.zona-form-actions .btn-secondary {
+  background: transparent;
+  color: #4a5568;
+  border: 1px solid #cbd5e0;
+}
+
+.zona-form-actions .btn-secondary:hover:not(:disabled) {
+  background: #f7fafc;
+}
+
+.zona-form-actions .btn-primary {
+  background: linear-gradient(135deg, #4ecdc4, #2ba89e);
+  color: white;
+}
+
+.zona-form-actions .btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(78, 205, 196, 0.4);
+}
+
+.zona-form-actions .btn-secondary:disabled,
+.zona-form-actions .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

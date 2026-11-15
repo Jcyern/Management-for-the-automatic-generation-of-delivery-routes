@@ -36,6 +36,12 @@ export const NAV_ITEMS: NavItem[] = [
     allowedRoles: ['logistico', 'admin'],
   },
   {
+    label: 'Zonas',
+    path: '/dashboard/zonas',
+    icon: 'MapPin',
+    allowedRoles: ['admin', 'supervisor', 'logistico'],
+  },
+  {
     label: 'Rutas',
     path: '/dashboard/rutas',
     icon: 'Route',

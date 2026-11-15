@@ -6,6 +6,7 @@ import { DashboardLayout } from './components/layout/DashboardLayout';
 import { RoleRoute } from './components/RoleRoute';
 import { Home } from './features/dashboard/pages/Home/Home';
 import { PedidosList } from './features/pedidos/pages/PedidosList/PedidosList';
+import { ZonasList } from './features/zonas/pages/ZonasList/ZonasList';
 
 /**
  * Route wrapper that only allows access to authenticated users.
@@ -62,6 +63,14 @@ function AppRoutes() {
           element={
             <RoleRoute allowedRoles={['logistico', 'admin']}>
               <PedidosList />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/dashboard/zonas"
+          element={
+            <RoleRoute allowedRoles={['admin', 'supervisor', 'logistico']}>
+              <ZonasList />
             </RoleRoute>
           }
         />
