@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from "@nestjs/common";
 import { OrderService } from "./Order.service.js";
-import { CreateOrderDto, UpdateOrderDto } from "./dto/Order.dto.js";
+import { CreateOrderDto, FilterOrderDto, UpdateOrderDto } from "./dto/Order.dto.js";
 
 
 @Controller('order')
@@ -14,10 +14,10 @@ export class OrderController
         return this.orderService.create(dto);
     }
 
-    // GET /order
+    // GET /order  ·  GET /order?estado=Pendiente
     @Get()
-    findAll() {
-        return this.orderService.findAll();
+    findAll( @Query() filter : FilterOrderDto ) {
+        return this.orderService.findAll(filter.estado);
     }
 
     // GET /order/:id
