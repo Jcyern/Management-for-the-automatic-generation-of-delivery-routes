@@ -9,7 +9,7 @@ export class ZonaController {
   constructor(private readonly zonaService: ZonaService) {}
 
   @Post()
-  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.SUPERVISOR, RolEfectivo.ADMINISTRADOR)
+  @Roles(RolEfectivo.ADMINISTRADOR)
   create(@Body() dto: CreateZonaDto) {
     return this.zonaService.create(dto);
   }
@@ -25,13 +25,13 @@ export class ZonaController {
   }
 
   @Put(':id')
-  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.SUPERVISOR, RolEfectivo.ADMINISTRADOR)
+  @Roles(RolEfectivo.ADMINISTRADOR)
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateZonaDto) {
     return this.zonaService.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.SUPERVISOR, RolEfectivo.ADMINISTRADOR)
+  @Roles(RolEfectivo.ADMINISTRADOR)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.zonaService.remove(id);
   }
