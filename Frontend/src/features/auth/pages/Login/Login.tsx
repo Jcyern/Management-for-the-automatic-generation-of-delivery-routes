@@ -202,7 +202,7 @@ export function Login() {
           </div>
 
           {hint && <div className="validation-hint">{hint}</div>}
-          {error && <div className="error-message">{error}</div>}
+          {error && <div className="alert-error">{error}</div>}
 
           <button
             ref={buttonRef}

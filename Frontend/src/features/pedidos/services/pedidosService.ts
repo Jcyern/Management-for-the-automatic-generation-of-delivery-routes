@@ -1,50 +1,49 @@
 import type { Pedido, PedidoFilters } from '../types/pedido';
-import { PEDIDOS_MOCK } from '../mocks/pedidosMock';
 
-const STORAGE_KEY = 'pedidos_mock';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 /**
- * Reads the orders from localStorage, falling back to the initial mock
- * the first time the app runs.
+ * Raw response shape from the backend's /order endpoint.
+ * (Based on the Prisma schema and the NestJS service)
  */
-function readStorage(): Pedido[] {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(PEDIDOS_MOCK));
-    return [...PEDIDOS_MOCK];
-  }
-  try {
-    return JSON.parse(raw) as Pedido[];
-  } catch {
-    return [...PEDIDOS_MOCK];
-  }
+interface BackendPedido {
+  id: number;
+  prioridad: string;
+  tipoEntrega: string;
+  zona: string;
+  idCentro: number;
+  idCoordinador: number;
+  destinatario: string;
+  direccion: string;
+  estado: string;
+  fechaCreado: string;
+  fechaLimite: string | null;
+  centro?: { nombre: string };
+  coordinador?: { nombre: string };
 }
 
-/**
- * Writes the given orders to localStorage.
- */
-function writeStorage(pedidos: Pedido[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(pedidos));
-}
-
-/**
- * Delivery orders service.
- *
- * Backed by localStorage while the backend is not available. When the
- * backend is ready, only the body of each method needs to change to an
- * HTTP call. The rest of the application does not need to be touched.
- */
 export const pedidosService = {
   /**
-   * Retrieves all orders matching the given filters.
-   *
-   * @param filters - Optional filters to apply.
-   * @returns A promise that resolves to the filtered list of orders.
+   * Retrieves all orders from the backend.
    */
   async getAll(filters?: PedidoFilters): Promise<Pedido[]> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    const response = await fetch(`${API_URL}/order`);
+    if (!response.ok) throw new Error('Error al cargar pedidos');
+    
+    const data: BackendPedido[] = await response.json();
 
-    let result = readStorage();
+    let result = data.map((p) => ({
+      id: String(p.id),
+      centroId: String(p.idCentro),
+      zonaId: p.zona,
+      tipoEntrega: p.tipoEntrega as any, 
+      prioridad: p.prioridad as any,
+      estado: p.estado.toLowerCase() as any,
+      direccion: p.direccion,
+      destinatario: p.destinatario,
+      creadoPor: p.coordinador?.nombre || 'Desconocido',
+      fechaCreacion: p.fechaCreado, 
+    }));
 
     if (filters?.tipoEntrega) {
       result = result.filter((p) => p.tipoEntrega === filters.tipoEntrega);
@@ -54,9 +53,6 @@ export const pedidosService = {
     }
     if (filters?.estado) {
       result = result.filter((p) => p.estado === filters.estado);
-    }
-    if (filters?.zonaId) {
-      result = result.filter((p) => p.zonaId === filters.zonaId);
     }
     if (filters?.search) {
       const term = filters.search.toLowerCase();
@@ -72,81 +68,44 @@ export const pedidosService = {
   },
 
   /**
-   * Retrieves a single order by its id.
-   *
-   * @param id - Identifier of the order.
-   * @returns A promise that resolves to the order, or `null` if not found.
-   */
-  async getById(id: string): Promise<Pedido | null> {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return readStorage().find((p) => p.id === id) ?? null;
-  },
-
-  /**
-   * Creates a new order.
-   *
-   * @param data - Order fields without the id (auto-generated) or creadoPor.
-   * @param creadoPor - Name of the coordinador creating the order.
-   * @returns A promise that resolves to the created order.
+   * Creates a new order in the backend.
    */
   async create(
     data: Omit<Pedido, 'id' | 'creadoPor' | 'fechaCreacion' | 'estado'>,
     creadoPor: string
   ): Promise<Pedido> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const pedidos = readStorage();
-    const nextNumber = String(pedidos.length + 1).padStart(3, '0');
-
-    const nuevo: Pedido = {
-      ...data,
-      id: `P-${nextNumber}`,
-      estado: 'pendiente',
-      creadoPor,
-      fechaCreacion: new Date().toISOString(),
+    const backendPayload = {
+      prioridad: data.prioridad,
+      tipoEntrega: data.tipoEntrega,
+      zona: data.zonaId,
+      idCentro: Number(data.centroId),
+      idCoordinador: 1, // TODO: When there's a JWT, this will come from the user's token
+      destinatario: data.destinatario,
+      direccion: data.direccion,
     };
 
-    pedidos.push(nuevo);
-    writeStorage(pedidos);
-    return nuevo;
+    const response = await fetch(`${API_URL}/order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(backendPayload),
+    });
+
+    if (!response.ok) throw new Error('Error al crear el pedido');
+
+    const created = await response.json();
+    
+    return {
+      id: String(created.id),
+      centroId: String(created.idCentro),
+      zonaId: created.zona,
+      tipoEntrega: created.tipoEntrega,
+      prioridad: created.prioridad,
+      estado: created.estado.toLowerCase(),
+      direccion: created.direccion,
+      destinatario: created.destinatario,
+      creadoPor: creadoPor,
+      fechaCreacion: created.fechaCreado,
+    };
   },
 
-  /**
-   * Updates an existing order.
-   *
-   * @param id - Identifier of the order to update.
-   * @param data - Fields to update.
-   * @returns A promise that resolves to the updated order.
-   * @throws Error if the order does not exist.
-   */
-  async update(id: string, data: Partial<Pedido>): Promise<Pedido> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const pedidos = readStorage();
-    const index = pedidos.findIndex((p) => p.id === id);
-    if (index === -1) throw new Error('Pedido no encontrado');
-
-    pedidos[index] = { ...pedidos[index], ...data };
-    writeStorage(pedidos);
-    return pedidos[index];
-  },
-
-  /**
-   * Deletes an order by its id.
-   *
-   * @param id - Identifier of the order to delete.
-   */
-  async delete(id: string): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const pedidos = readStorage().filter((p) => p.id !== id);
-    writeStorage(pedidos);
-  },
-
-  /**
-   * Resets the mock data to the original seed. Useful for development.
-   */
-  resetMock(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(PEDIDOS_MOCK));
-  },
 };

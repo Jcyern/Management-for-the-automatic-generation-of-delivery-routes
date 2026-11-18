@@ -7,6 +7,7 @@ import { RoleRoute } from './components/RoleRoute';
 import { Home } from './features/dashboard/pages/Home/Home';
 import { PedidosList } from './features/pedidos/pages/PedidosList/PedidosList';
 import { ZonasList } from './features/zonas/pages/ZonasList/ZonasList';
+import { RutasList } from './features/rutas/pages/RutasList/RutasList';
 
 /**
  * Route wrapper that only allows access to authenticated users.
@@ -56,8 +57,6 @@ function AppRoutes() {
       >
         <Route path="/dashboard" element={<Home />} />
 
-        {/* Aquí irán las rutas protegidas por rol a medida que se implementen */}
-
         <Route
           path="/dashboard/pedidos"
           element={
@@ -78,7 +77,7 @@ function AppRoutes() {
           path="/dashboard/rutas"
           element={
             <RoleRoute allowedRoles={['logistico', 'supervisor', 'repartidor', 'admin']}>
-              <div>Página de Rutas (por implementar)</div>
+              <RutasList />
             </RoleRoute>
           }
         />
