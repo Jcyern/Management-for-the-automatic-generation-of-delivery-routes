@@ -55,9 +55,10 @@ export class CreateOrderDto {
   @IsPositive()
   idParada: number;
 
+  @IsOptional()
   @IsInt()
   @IsPositive()
-  idRuta: number;
+  idRuta?: number;
 
   @IsOptional()
   @IsDateString()

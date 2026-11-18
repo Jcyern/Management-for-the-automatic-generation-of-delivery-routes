@@ -7,6 +7,7 @@ import {
   BarChart3,
   Building2,
   Users,
+  MapPin,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/context/AuthContext';
@@ -21,6 +22,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   BarChart3,
   Building2,
   Users,
+  MapPin,
 };
 
 /**

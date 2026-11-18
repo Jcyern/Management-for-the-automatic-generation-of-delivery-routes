@@ -4,7 +4,7 @@ import { QuickAction } from '../../../components/QuickAction';
 import { SectionHeader } from '../../../components/SectionHeader';
 
 /**
- * Home view for users with the `coordinador` role.
+ * Home view for users with the `logistico` role.
  *
  * Shows order and route activity, plus quick access to the main actions
  * a logistics coordinator performs daily.

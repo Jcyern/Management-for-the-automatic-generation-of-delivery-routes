@@ -128,7 +128,7 @@ model Parada {
   estadoEjecucion EstadoParada?
 
   pedidoAsociados Pedido[] @relation(name: "Asociado")
-  rutas           Ruta[]  @relation("ContieneParada")
+  rutas           Ruta[] @relation("ContieneParada")
 }
 
 model Pedido {
@@ -152,8 +152,8 @@ model Pedido {
   idCoordinador Int
   coordinador   CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
   
-  idRuta Int
-  ruta Ruta @relation(fields: [idRuta], references: [id], name:"Contener")
+  idRuta Int?
+  ruta Ruta? @relation(fields: [idRuta], references: [id], name:"Contener")
 
   idZona Int
   zona Zona @relation(fields: [idZona], references: [id], name: "PertenecerZona")

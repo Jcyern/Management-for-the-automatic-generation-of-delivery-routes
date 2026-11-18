@@ -37,7 +37,7 @@ const mockUser: User = {
   id: '1',
   name: 'Test',
   email: 'test@test.com',
-  role: 'coordinador',
+  role: 'logistico',
 };
 
 describe('Login', () => {

@@ -3,7 +3,7 @@ import { useAuth } from '../../features/auth/context/AuthContext';
 import './Header.css';
 
 const ROLE_LABELS: Record<string, string> = {
-  coordinador: 'Coordinador logístico',
+  logistico: 'Coordinador logístico',
   repartidor: 'Repartidor',
   supervisor: 'Supervisor de operaciones',
   admin: 'Administrador',

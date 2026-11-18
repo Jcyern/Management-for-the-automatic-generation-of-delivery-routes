@@ -1,5 +1,5 @@
 import { useAuth } from '../../../auth/context/AuthContext';
-import { CoordinadorHome } from './views/CoordinadorHome';
+import { CoordinadorHome } from './views/LogisticoHome';
 import { RepartidorHome } from './views/RepartidorHome';
 import { SupervisorHome } from './views/SupervisorHome';
 import { AdminHome } from './views/AdminHome';
@@ -25,7 +25,7 @@ export function Home() {
         </p>
       </header>
 
-      {user.role === 'coordinador' && <CoordinadorHome />}
+      {user.role === 'logistico' && <CoordinadorHome />}
       {user.role === 'repartidor' && <RepartidorHome />}
       {user.role === 'supervisor' && <SupervisorHome />}
       {user.role === 'admin' && <AdminHome />}

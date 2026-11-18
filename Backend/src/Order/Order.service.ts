@@ -23,7 +23,7 @@ export class OrderService {
         idCoordinador: dto.idCoordinador,
         idZona: dto.idZona,
         idParada: dto.idParada,
-        idRuta: dto.idRuta,
+        idRuta: dto.idRuta ?? null,
         ...(dto.fechaPrevista !== undefined
           ? { fechaPrevista: new Date(dto.fechaPrevista) }
           : {}),

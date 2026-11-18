@@ -26,7 +26,7 @@ const mockUser: User = {
   id: '1',
   name: 'Test User',
   email: 'test@test.com',
-  role: 'coordinador',
+  role: 'logistico',
 };
 
 const mockLoginResult: LoginResult = {

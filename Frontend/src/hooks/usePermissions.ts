@@ -26,6 +26,9 @@ export interface Permissions {
   canManageUsers: boolean;
   canManageCentros: boolean;
 
+  /** Admin: create, edit and delete zones. */
+  canManageZonas: boolean;
+
   /** Admin: resolve duplicate orders and double assignments. */
   canResolveConflicts: boolean;
 }
@@ -42,14 +45,15 @@ export function usePermissions(): Permissions {
   const role = user?.role;
 
   return {
-    canCreatePedido: role === 'coordinador',
-    canGenerateRuta: role === 'coordinador',
+    canCreatePedido: role === 'logistico',
+    canGenerateRuta: role === 'logistico',
     canValidateRuta: role === 'supervisor',
-    canAssignRuta: role === 'coordinador',
+    canAssignRuta: role === 'logistico',
     canRequestReprogramacion: role === 'repartidor',
-    canResolveReprogramacion: role === 'coordinador',
+    canResolveReprogramacion: role === 'logistico',
     canManageUsers: role === 'admin',
     canManageCentros: role === 'admin',
+    canManageZonas: role === 'admin',
     canResolveConflicts: role === 'admin',
   };
 }
