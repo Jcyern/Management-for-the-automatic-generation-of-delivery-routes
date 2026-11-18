@@ -43,7 +43,7 @@ interface PedidoFormProps {
 const EMPTY_FORM: PedidoFormData = {
   destinatario: '',
   direccion: '',
-  centroId: 'C-01',
+  centroId: '1',
   zonaId: 'Z-01',
   tipoEntrega: 'paqueteria',
   prioridad: 'media',
@@ -147,9 +147,9 @@ export function PedidoForm({
             onChange={handleSelect('centroId')}
             disabled={isSubmitting}
           >
-            <option value="C-01">Centro Habana</option>
-            <option value="C-02">Centro Playa</option>
-            <option value="C-03">Centro Guanabacoa</option>
+            <option value="1">Centro Habana</option>
+            <option value="2">Centro Playa</option>
+            <option value="3">Centro Guanabacoa</option>
           </select>
         </div>
 

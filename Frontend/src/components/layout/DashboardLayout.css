@@ -2,7 +2,7 @@
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background: #f7fff7;
+  background: var(--color-bg-stage);
 }
 
 .dashboard-main {

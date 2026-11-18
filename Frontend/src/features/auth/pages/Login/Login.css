@@ -250,16 +250,6 @@ button[type='submit'].btn-escape {
   cursor: default;
 }
 
-.error-message {
-  background: rgba(255, 107, 107, 0.15);
-  color: #c53030;
-  padding: 0.75rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  border-left: 3px solid #ff6b6b;
-}
-
 .validation-hint {
   background: #faf1c3;
   color: #92400e;

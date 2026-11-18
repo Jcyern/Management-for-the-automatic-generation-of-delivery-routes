@@ -1,8 +1,8 @@
 
 .header {
   height: 64px;
-  background: #f7fff7;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -20,7 +20,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4ecdc4, #2ba89e);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: white;
   display: flex;
   align-items: center;

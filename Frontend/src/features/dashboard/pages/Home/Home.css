@@ -7,19 +7,6 @@
   margin-bottom: 1.5rem;
 }
 
-.home-welcome-title {
-  font-size: 1.65rem;
-  font-weight: 700;
-  color: #292f36;
-  margin: 0;
-}
-
-.home-welcome-subtitle {
-  font-size: 0.9rem;
-  color: #718096;
-  margin: 0.25rem 0 0 0;
-}
-
 .home-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
