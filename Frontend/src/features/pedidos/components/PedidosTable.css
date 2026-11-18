@@ -1,19 +1,18 @@
 
-
 .table-wrapper {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .table-empty {
   padding: 3rem;
   text-align: center;
-  color: #718096;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   font-size: 0.9rem;
 }
 
@@ -24,8 +23,8 @@
 }
 
 .pedidos-table thead {
-  background: #f7fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--color-surface-low);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .pedidos-table th {
@@ -45,7 +44,7 @@
 }
 
 .pedidos-table th.sortable:hover {
-  color: #4ecdc4;
+  color: var(--color-primary);
 }
 
 .th-content {
@@ -54,9 +53,8 @@
   gap: 0.35rem;
 }
 
-
 .pedidos-table tbody tr {
-  border-bottom: 1px solid #edf2f7;
+  border-bottom: 1px solid var(--color-border);
   transition: background 0.12s;
 }
 
@@ -65,12 +63,12 @@
 }
 
 .pedidos-table tbody tr:hover {
-  background: #f7fff7;
+  background: var(--color-bg-stage);
 }
 
 .pedidos-table td {
   padding: 0.85rem 1rem;
-  color: #2d3748;
+  color: var(--color-text-main);
   vertical-align: middle;
 }
 
@@ -82,32 +80,32 @@
 
 .cell-destinatario {
   font-weight: 600;
-  color: #292f36;
+  color: var(--color-text-main);
 }
 
 .cell-direccion {
   font-size: 0.78rem;
-  color: #718096;
+  color: var(--color-text-muted);
   margin-top: 0.1rem;
 }
 
 .cell-fecha {
   font-size: 0.85rem;
-  color: #718096;
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
 .badge {
   display: inline-block;
   padding: 0.2rem 0.6rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .badge--baja {
-  background: #e2e8f0;
+  background: var(--color-border);
   color: #4a5568;
 }
 
@@ -128,7 +126,7 @@
 
 .badge--estado-en_ruta {
   background: rgba(78, 205, 196, 0.18);
-  color: #2ba89e;
+  color: var(--color-primary-dark);
 }
 
 .badge--estado-entregado {

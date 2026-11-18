@@ -70,3 +70,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Docs locales
 agent.md
 AGENTS.md
+
+*.db

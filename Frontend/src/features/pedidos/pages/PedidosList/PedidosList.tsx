@@ -48,15 +48,15 @@ export function PedidosList() {
     }
   };
 
-  return (
+    return (
     <div className="pedidos-list">
       <header className="pedidos-list-header">
         <div>
-          <h1>Pedidos</h1>
-          <p className="pedidos-list-subtitle">{total} pedidos en total</p>
+          <h1 className="page-title">Pedidos</h1>
+          <p className="page-subtitle">{total} pedidos en total</p>
         </div>
         <button
-          className="pedidos-list-new"
+          className="btn-primary"
           type="button"
           onClick={() => setIsModalOpen(true)}
         >
@@ -67,8 +67,8 @@ export function PedidosList() {
 
       <PedidoFiltersBar filters={filters} onChange={setFilters} />
 
-      {isLoading && <div className="pedidos-list-status">Cargando pedidos...</div>}
-      {error && <div className="pedidos-list-error">{error}</div>}
+      {isLoading && <div className="page-loading">Cargando pedidos...</div>}
+      {error && <div className="alert-error">{error}</div>}
 
       {!isLoading && !error && (
         <>
