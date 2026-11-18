@@ -1,14 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { CreateOrderDto, UpdateOrderDto } from './dto/Order.dto.js';
 import { PrismaService } from '../prismaModule/prisma.service.js';
 import { EstadoPedido } from '../generated/prisma/client.js';
+import { GeocodingService } from '../geo/geocoding.service.js';
+import type { Coordenadas } from '../geo/geo.types.js';
 
 
 @Injectable()
 export class OrderService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly geocoding: GeocodingService,
+  ) {}
 
   async create(dto: CreateOrderDto) {
+    const coordenadas = await this.resolverCoordenadas(dto.direccion);
+
     return this.prisma.pedido.create({
       data: {
         ...(dto.prioridad !== undefined
@@ -19,11 +26,13 @@ export class OrderService {
           : {}),
         destinatario: dto.destinatario,
         direccion: dto.direccion,
+        latitud: coordenadas?.latitud ?? null,
+        longitud: coordenadas?.longitud ?? null,
         idCentro: dto.idCentro,
         idCoordinador: dto.idCoordinador,
         idZona: dto.idZona,
         idParada: dto.idParada,
-        idRuta: dto.idRuta,
+        idRuta: dto.idRuta ?? null,
         ...(dto.fechaPrevista !== undefined
           ? { fechaPrevista: new Date(dto.fechaPrevista) }
           : {}),
@@ -58,9 +67,14 @@ export class OrderService {
         return pedido;
     }
 
-    // Actualiza un pedido (404 si no existe).
+    // Actualiza un pedido (404 si no existe). Si cambia la dirección, se vuelve a geocodificar.
     async update(id: number, dto: UpdateOrderDto) {
         await this.findOne(id);
+
+        const coordenadas =
+        dto.direccion !== undefined
+            ? await this.resolverCoordenadas(dto.direccion)
+            : undefined;
 
         return this.prisma.pedido.update({
         where: { id },
@@ -76,6 +90,12 @@ export class OrderService {
             : {}),
             ...(dto.direccion !== undefined
             ? { direccion: dto.direccion }
+            : {}),
+            ...(coordenadas !== undefined
+            ? {
+                latitud: coordenadas?.latitud ?? null,
+                longitud: coordenadas?.longitud ?? null,
+              }
             : {}),
             ...(dto.idCentro !== undefined
             ? { idCentro: dto.idCentro }
@@ -106,5 +126,21 @@ export class OrderService {
         where: { id },
         include: { centro: true, coordinador: true },
         });
+    }
+
+    /**
+     * Geocodifica una dirección aplicando la política configurada:
+     * en modo estricto una dirección sin coordenadas es un 422.
+     */
+    private async resolverCoordenadas(direccion: string): Promise<Coordenadas | null> {
+        const coordenadas = await this.geocoding.geocodificar(direccion);
+
+        if (!coordenadas && this.geocoding.modoEstricto) {
+        throw new UnprocessableEntityException(
+            `No se pudo obtener la ubicación para la dirección "${direccion}". Verifícala e intenta de nuevo.`,
+        );
+        }
+
+        return coordenadas;
     }
 }

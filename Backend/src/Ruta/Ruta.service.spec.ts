@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PrismaService } from '../prismaModule/prisma.service.js';
@@ -59,6 +59,29 @@ describe('RutaService', () => {
       expect(prisma.ruta.create).toHaveBeenCalled();
     });
 
+    it('crea una ruta sin reporte y no consulta Reporte', async () => {
+      prisma.logistico.findUnique.mockResolvedValue({ id: 1 });
+      prisma.pedido.findMany.mockResolvedValue([{ id: 1, idRuta: null }, { id: 2, idRuta: null }]);
+      prisma.ruta.create.mockResolvedValue({ id: 1 });
+
+      const sinReporte = {
+        fechaRealizacion: dtoBase.fechaRealizacion,
+        proporcionPedidosTipoEntrega: dtoBase.proporcionPedidosTipoEntrega,
+        cantidadTotalPedidos: dtoBase.cantidadTotalPedidos,
+        idLogistico: dtoBase.idLogistico,
+        pedidosIds: dtoBase.pedidosIds,
+      };
+
+      await expect(service.create(sinReporte)).resolves.toBeDefined();
+      expect(prisma.reporte.findUnique).not.toHaveBeenCalled();
+      expect(prisma.ruta.findFirst).not.toHaveBeenCalled();
+      expect(prisma.ruta.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.not.objectContaining({ idReporte: expect.anything() }),
+        }),
+      );
+    });
+
     it('lanza error si el logístico no existe', async () => {
       prisma.logistico.findUnique.mockResolvedValue(null);
       await expect(service.create(dtoBase)).rejects.toThrow(BadRequestException);
@@ -79,6 +102,37 @@ describe('RutaService', () => {
       prisma.pedido.findMany.mockResolvedValue([{ id: 1, idRuta: 99 }, { id: 2, idRuta: null }]);
 
       await expect(service.create(dtoBase)).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('update', () => {
+    it('lanza error si el reporte a asignar no existe', async () => {
+      prisma.ruta.findUnique.mockResolvedValue({ id: 1 });
+      prisma.reporte.findUnique.mockResolvedValue(null);
+
+      await expect(service.update(1, { idReporte: 99 })).rejects.toThrow('El reporte 99 no existe.');
+      expect(prisma.ruta.update).not.toHaveBeenCalled();
+    });
+
+    it('lanza error si el reporte ya está asignado a otra ruta', async () => {
+      prisma.ruta.findUnique.mockResolvedValue({ id: 1 });
+      prisma.reporte.findUnique.mockResolvedValue({ id: 5 });
+      prisma.ruta.findFirst.mockResolvedValue({ id: 99 });
+
+      await expect(service.update(1, { idReporte: 5 })).rejects.toThrow(BadRequestException);
+      expect(prisma.ruta.update).not.toHaveBeenCalled();
+    });
+
+    it('asigna el reporte si es válido', async () => {
+      prisma.ruta.findUnique.mockResolvedValue({ id: 1 });
+      prisma.reporte.findUnique.mockResolvedValue({ id: 5 });
+      prisma.ruta.findFirst.mockResolvedValue(null);
+      prisma.ruta.update.mockResolvedValue({ id: 1 });
+
+      await expect(service.update(1, { idReporte: 5 })).resolves.toBeDefined();
+      expect(prisma.ruta.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ idReporte: 5 }) }),
+      );
     });
   });
 
@@ -242,8 +296,8 @@ describe('RutaService', () => {
 
       expect(resultado).toHaveLength(2);
       
-      expect(resultado![0].creadoPorOtroCoordinador).toBe(false);
-      expect(resultado![1].creadoPorOtroCoordinador).toBe(true);
+      expect(resultado![0]!.creadoPorOtroCoordinador).toBe(false);
+      expect(resultado![1]!.creadoPorOtroCoordinador).toBe(true);
     });
   });
 });

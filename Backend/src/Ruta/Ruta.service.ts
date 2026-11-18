@@ -8,16 +8,19 @@ export class RutaService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateRutaDto) {
-    const { zonasIds, pedidosIds, ...data } = dto;
+    const { zonasIds, pedidosIds, idReporte, ...data } = dto;
 
     const logistico = await this.prisma.logistico.findUnique({ where: { id: dto.idLogistico }});
     if (!logistico) throw new BadRequestException(`El logístico ${dto.idLogistico} no existe.`);
 
-    const reporte = await this.prisma.reporte.findUnique({ where: { id: dto.idReporte }});
-    if (!reporte) throw new BadRequestException(`El reporte ${dto.idReporte} no existe.`);
+    // El reporte es opcional; si se envía, debe existir y no estar usado por otra ruta.
+    if (idReporte !== undefined) {
+      const reporte = await this.prisma.reporte.findUnique({ where: { id: idReporte }});
+      if (!reporte) throw new BadRequestException(`El reporte ${idReporte} no existe.`);
 
-    const rutaConReporte = await this.prisma.ruta.findFirst({ where: { idReporte: dto.idReporte } });
-    if (rutaConReporte) throw new BadRequestException(`El reporte ${dto.idReporte} ya está asignado a la ruta ${rutaConReporte.id}.`);
+      const rutaConReporte = await this.prisma.ruta.findFirst({ where: { idReporte } });
+      if (rutaConReporte) throw new BadRequestException(`El reporte ${idReporte} ya está asignado a la ruta ${rutaConReporte.id}.`);
+    }
 
     if (pedidosIds && pedidosIds.length > 0) {
       const pedidos = await this.prisma.pedido.findMany({ where: { id: { in: pedidosIds } } });
@@ -30,9 +33,10 @@ export class RutaService {
     return this.prisma.ruta.create({
       data: {
         ...data,
+        ...(idReporte !== undefined ? { idReporte } : {}),
         fechaRealizacion: new Date(dto.fechaRealizacion),
-        zonasCubiertas: zonasIds ? { connect: zonasIds.map(id => ({ id })) } : undefined,
-        pedidos: pedidosIds ? { connect: pedidosIds.map(id => ({ id })) } : undefined,
+        ...(zonasIds ? { zonasCubiertas: { connect: zonasIds.map(id => ({ id })) } } : {}),
+        ...(pedidosIds ? { pedidos: { connect: pedidosIds.map(id => ({ id })) } } : {}),
       },
       include: { logistico: true, zonasCubiertas: true, pedidos: true }
     });
@@ -69,15 +73,25 @@ export class RutaService {
 
   async update(id: number, dto: UpdateRutaDto) {
     await this.findOne(id);
-    const { zonasIds, pedidosIds, fechaRealizacion, ...data } = dto;
+    const { zonasIds, pedidosIds, fechaRealizacion, idReporte, ...data } = dto;
+
+    // Si se asigna un reporte, debe existir y no estar usado por otra ruta.
+    if (idReporte !== undefined) {
+      const reporte = await this.prisma.reporte.findUnique({ where: { id: idReporte } });
+      if (!reporte) throw new BadRequestException(`El reporte ${idReporte} no existe.`);
+
+      const rutaConReporte = await this.prisma.ruta.findFirst({ where: { idReporte, NOT: { id } } });
+      if (rutaConReporte) throw new BadRequestException(`El reporte ${idReporte} ya está asignado a la ruta ${rutaConReporte.id}.`);
+    }
 
     return this.prisma.ruta.update({
       where: { id },
       data: {
         ...data,
-        fechaRealizacion: fechaRealizacion ? new Date(fechaRealizacion) : undefined,
-        zonasCubiertas: zonasIds ? { set: zonasIds.map(id => ({ id })) } : undefined,
-        pedidos: pedidosIds ? { set: pedidosIds.map(id => ({ id })) } : undefined,
+        ...(idReporte !== undefined ? { idReporte } : {}),
+        ...(fechaRealizacion ? { fechaRealizacion: new Date(fechaRealizacion) } : {}),
+        ...(zonasIds ? { zonasCubiertas: { set: zonasIds.map(id => ({ id })) } } : {}),
+        ...(pedidosIds ? { pedidos: { set: pedidosIds.map(id => ({ id })) } } : {}),
       },
       include: { logistico: true, zonasCubiertas: true, pedidos: true }
     });
@@ -148,7 +162,7 @@ export class RutaService {
         idRuta: idRuta,
         idSupervisor: idSupervisor,
         fecha: new Date(dto.fecha),
-        observaciones: dto.observaciones,
+        observaciones: dto.observaciones ?? null,
         aprobadoRechazado: dto.aprobadoRechazado,
       },
       include: { supervisor: true }

@@ -20,9 +20,10 @@ export class CreateRutaDto {
   @IsPositive()
   idLogistico: number;
 
+  @IsOptional()
   @IsInt()
   @IsPositive()
-  idReporte: number;
+  idReporte?: number;
 
   @IsArray()
   @IsInt({ each: true })

@@ -118,8 +118,8 @@ model Ruta {
   realizada Realizar? @relation(name: "Realizar")
 
 
-  idReporte Int
-  reporte Reporte @relation(fields: [idReporte], references: [id], name: "GenerarReporte")
+  idReporte Int?
+  reporte Reporte? @relation(fields: [idReporte], references: [id], name: "GenerarReporte")
 
 }
 
@@ -143,6 +143,10 @@ model Pedido {
   destinatario String
   direccion    String
 
+  // coordenadas obtenidas por geocoding (null si no se pudo resolver)
+  latitud  Float?
+  longitud Float?
+
   idParada Int
   parada Parada @relation(fields: [idParada], references: [id], name: "Asociado")
   
@@ -152,8 +156,8 @@ model Pedido {
   idCoordinador Int
   coordinador   CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
   
-  idRuta Int
-  ruta Ruta @relation(fields: [idRuta], references: [id], name:"Contener")
+  idRuta Int?
+  ruta Ruta? @relation(fields: [idRuta], references: [id], name:"Contener")
 
   idZona Int
   zona Zona @relation(fields: [idZona], references: [id], name: "PertenecerZona")
@@ -264,6 +268,15 @@ model Reprogramar {
 }
 
 
+
+// Cache de geocoding: evita repetir llamadas al proveedor externo
+model GeocodingCache {
+  direccionNormalizada String   @id
+  latitud              Float
+  longitud             Float
+  proveedor            String
+  creadoEn             DateTime @default(now())
+}
 
 // Enum definidos 
 
