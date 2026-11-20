@@ -36,6 +36,19 @@ export class RutaService {
     private grafoService: GrafoService,
   ) {}
 
+  /**
+   * Crea una ruta generada automáticamente a partir de los pedidos indicados.
+   *
+   * Valida logístico, pedidos (existencia, mismo centro, sin ruta asignada y con
+   * coordenadas), centro con coordenadas y reporte opcional. Calcula zonas
+   * cubiertas y métricas de la ruta, y determina el orden de visita con una
+   * heurística voraz (vecino más cercano) usando un motor híbrido: costos entre
+   * zonas desde Neo4j y distancias Haversine para tramos desde el centro o
+   * dentro de la misma zona (con fallback Haversine si no hay camino inter-zona).
+   *
+   * Persiste en una transacción la ruta, su vínculo con pedidos/zonas y una
+   * parada nueva por pedido con orden y métricas desde la ubicación anterior.
+   */
   async create(dto: CreateRutaDto) {
     const criterio: Criterio = dto.criterio ?? 'distancia';
     const pedidosIds = [...new Set(dto.pedidosIds)];
@@ -375,6 +388,7 @@ export class RutaService {
     });
   }
 
+  /** Indexa los costos inter-zona en un mapa simétrico para consulta O(1). */
   private construirMapaCostos(costos: Array<{ origen: number; destino: number; costo: number; distanciaKm: number; tiempoMin: number }>): Map<string, { costo: number; distanciaKm: number; tiempoMin: number }> {
     const mapa = new Map<string, { costo: number; distanciaKm: number; tiempoMin: number }>();
     for (const c of costos) {
@@ -385,6 +399,11 @@ export class RutaService {
     return mapa;
   }
 
+  /**
+   * Calcula el costo y las métricas de un tramo hacia un pedido.
+   * Usa Haversine desde el centro o dentro de la misma zona; entre zonas
+   * distintas usa el costo del grafo y recurre a Haversine si no existe camino.
+   */
   private tramoEntre(
     desde: { coords: Coordenadas; idZona: number | null; esCentro: boolean },
     hasta: PedidoGeneracion,
@@ -424,6 +443,11 @@ export class RutaService {
     };
   }
 
+  /**
+   * Ordena los pedidos con una heurística de vecino más cercano partiendo del
+   * centro y construye el plan de paradas con su orden y métricas acumulables
+   * respecto a la ubicación anterior.
+   */
   private ordenarPedidos(
     pedidos: PedidoGeneracion[],
     centroCoords: Coordenadas,

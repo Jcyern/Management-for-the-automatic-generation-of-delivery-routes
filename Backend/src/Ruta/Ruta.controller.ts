@@ -8,6 +8,9 @@ import { RolEfectivo } from '../Auth/roles.js';
 export class RutaController {
   constructor(private readonly rutaService: RutaService) {}
 
+  /**
+   * Crea una ruta generada automáticamente a partir de los pedidos indicados.
+   */
   @Post()
   @Roles(RolEfectivo.LOGISTICO, RolEfectivo.ADMINISTRADOR)
   create(@Body() dto: CreateRutaDto) {
