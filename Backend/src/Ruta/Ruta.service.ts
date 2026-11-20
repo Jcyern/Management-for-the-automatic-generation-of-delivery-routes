@@ -61,7 +61,7 @@ export class RutaService {
         logistico: true, 
         zonasCubiertas: true, 
         pedidos: true, 
-        paradas: true,
+        paradas: { orderBy: { orden: 'asc' } },
         asignada: true,
         validada: true,
         realizada: true
@@ -264,7 +264,12 @@ export class RutaService {
           { realizada: { idRepartidor: idRepartidor } }
         ]
       },
-      include: { paradas: true, pedidos: true, validada: true, realizada: true }
+      include: {
+        paradas: { orderBy: { orden: 'asc' } },
+        pedidos: true,
+        validada: true,
+        realizada: true,
+      }
     });
   }
 }

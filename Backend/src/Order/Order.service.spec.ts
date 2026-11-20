@@ -49,7 +49,10 @@ describe('OrderService (geocoding)', () => {
   });
 
   it('guarda las coordenadas al crear un pedido', async () => {
-    geocoding.geocodificar.mockResolvedValue({ latitud: 23.1, longitud: -82.4 });
+    geocoding.geocodificar.mockResolvedValue({
+      latitud: 23.1,
+      longitud: -82.4,
+    });
     prisma.pedido.create.mockResolvedValue({ id: 1 });
 
     await service.create(dtoBase);
@@ -57,7 +60,29 @@ describe('OrderService (geocoding)', () => {
     expect(geocoding.geocodificar).toHaveBeenCalledWith(dtoBase.direccion);
     expect(prisma.pedido.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ latitud: 23.1, longitud: -82.4 }),
+        data: expect.objectContaining({
+          latitud: 23.1,
+          longitud: -82.4,
+          idParada: 4,
+        }),
+      }),
+    );
+  });
+
+  it('crea el pedido sin parada cuando no se envía idParada', async () => {
+    geocoding.geocodificar.mockResolvedValue({
+      latitud: 23.1,
+      longitud: -82.4,
+    });
+    prisma.pedido.create.mockResolvedValue({ id: 1 });
+
+    const sinParada = Object.assign({}, dtoBase) as CreateOrderDto;
+    delete sinParada.idParada;
+    await service.create(sinParada);
+
+    expect(prisma.pedido.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.not.objectContaining({ idParada: expect.anything() }),
       }),
     );
   });
@@ -88,7 +113,10 @@ describe('OrderService (geocoding)', () => {
   it('vuelve a geocodificar y actualiza coordenadas al cambiar la dirección', async () => {
     prisma.pedido.findUnique.mockResolvedValue({ id: 1 });
     prisma.pedido.update.mockResolvedValue({ id: 1 });
-    geocoding.geocodificar.mockResolvedValue({ latitud: 23.2, longitud: -82.5 });
+    geocoding.geocodificar.mockResolvedValue({
+      latitud: 23.2,
+      longitud: -82.5,
+    });
 
     const dto: UpdateOrderDto = { direccion: 'Calle 25 #12' };
     await service.update(1, dto);
