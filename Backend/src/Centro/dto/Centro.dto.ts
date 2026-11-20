@@ -2,8 +2,11 @@ import {
   IsArray,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsPositive,
   IsString,
+  Max,
+  Min,
   ValidateIf,
 } from 'class-validator';
 
@@ -17,6 +20,23 @@ export class CreateCentroDto {
   @IsString()
   @IsNotEmpty()
   programaLogistico: string;
+
+  @ValidateIf(ifDefined)
+  @IsString()
+  @IsNotEmpty()
+  direccion?: string;
+
+  @ValidateIf(ifDefined)
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitud?: number;
+
+  @ValidateIf(ifDefined)
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitud?: number;
 
   @ValidateIf(ifDefined)
   @IsArray()
@@ -35,6 +55,23 @@ export class UpdateCentroDto {
   @IsString()
   @IsNotEmpty()
   programaLogistico?: string;
+
+  @ValidateIf(ifDefined)
+  @IsString()
+  @IsNotEmpty()
+  direccion?: string;
+
+  @ValidateIf(ifDefined)
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitud?: number;
+
+  @ValidateIf(ifDefined)
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitud?: number;
 
   @ValidateIf(ifDefined)
   @IsArray()

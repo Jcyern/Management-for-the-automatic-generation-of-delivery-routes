@@ -1,7 +1,8 @@
-import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PrismaService } from '../prismaModule/prisma.service.js';
+import { GrafoService } from '../grafo/grafo.service.js';
 import { RutaService } from './Ruta.service.js';
 import { EstadoRuta } from '../generated/prisma/client.js';
 
@@ -20,8 +21,13 @@ const prisma = vi.hoisted(() => ({
   asignar: { findFirst: vi.fn(), create: vi.fn() },
   validar: { create: vi.fn() },
   realizar: { create: vi.fn() },
-  centroDeDistribucion: { findFirst: vi.fn() },
+  centroDeDistribucion: { findFirst: vi.fn(), findUnique: vi.fn() },
+  parada: { create: vi.fn() },
   $transaction: vi.fn(),
+}));
+
+const grafo = vi.hoisted(() => ({
+  matrizCostos: vi.fn(),
 }));
 
 describe('RutaService', () => {
@@ -33,7 +39,11 @@ describe('RutaService', () => {
     prisma.$transaction.mockImplementation(async (cb: any) => cb(prisma));
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RutaService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        RutaService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: GrafoService, useValue: grafo },
+      ],
     }).compile();
     service = module.get(RutaService);
   });
@@ -41,44 +51,170 @@ describe('RutaService', () => {
   describe('create', () => {
     const dtoBase = {
       fechaRealizacion: '2026-11-04T10:00:00Z',
-      proporcionPedidosTipoEntrega: 50,
-      cantidadTotalPedidos: 10,
       idLogistico: 1,
       idReporte: 1,
       pedidosIds: [1, 2],
     };
 
-    it('crea una ruta si todo es válido', async () => {
+    const centro = { id: 10, latitud: 23.1, longitud: -82.3 };
+    const pedido = (id: number, overrides: Record<string, unknown> = {}) => ({
+      id,
+      idZona: 1,
+      idCentro: 10,
+      idRuta: null,
+      tipoEntrega: 'Paqueteria',
+      latitud: 23.11,
+      longitud: -82.31,
+      ...overrides,
+    });
+
+    it('crea una ruta automáticamente si todo es válido', async () => {
       prisma.logistico.findUnique.mockResolvedValue({ id: 1 });
+      prisma.pedido.findMany.mockResolvedValue([pedido(1), pedido(2, { latitud: 23.12, longitud: -82.32 })]);
+      prisma.centroDeDistribucion.findUnique.mockResolvedValue(centro);
       prisma.reporte.findUnique.mockResolvedValue({ id: 1 });
       prisma.ruta.findFirst.mockResolvedValue(null);
-      prisma.pedido.findMany.mockResolvedValue([{ id: 1, idRuta: null }, { id: 2, idRuta: null }]);
-      prisma.ruta.create.mockResolvedValue({ id: 1 });
+      grafo.matrizCostos.mockResolvedValue([]);
+      prisma.ruta.create.mockResolvedValue({ id: 7 });
+      prisma.parada.create.mockResolvedValue({});
+      prisma.ruta.findUnique.mockResolvedValue({ id: 7, paradas: [], pedidos: [], zonasCubiertas: [] });
 
-      await expect(service.create(dtoBase)).resolves.toBeDefined();
-      expect(prisma.ruta.create).toHaveBeenCalled();
+      await expect(service.create(dtoBase)).resolves.toEqual({ id: 7, paradas: [], pedidos: [], zonasCubiertas: [] });
+
+      expect(grafo.matrizCostos).toHaveBeenCalledWith([1], 'distancia');
+      expect(prisma.ruta.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            idLogistico: 1,
+            idReporte: 1,
+            cantidadTotalPedidos: 2,
+            zonasCubiertas: { connect: [{ id: 1 }] },
+            pedidos: { connect: [{ id: 1 }, { id: 2 }] },
+          }),
+        }),
+      );
+      expect(prisma.parada.create).toHaveBeenCalledTimes(2);
+      expect(prisma.parada.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orden: 1,
+            rutas: { connect: { id: 7 } },
+            pedidoAsociados: { connect: { id: expect.any(Number) } },
+          }),
+        }),
+      );
+    });
+
+    it('crea una ruta sin reporte y no consulta Reporte', async () => {
+      prisma.logistico.findUnique.mockResolvedValue({ id: 1 });
+      prisma.pedido.findMany.mockResolvedValue([pedido(1), pedido(2)]);
+      prisma.centroDeDistribucion.findUnique.mockResolvedValue(centro);
+      grafo.matrizCostos.mockResolvedValue([]);
+      prisma.ruta.create.mockResolvedValue({ id: 7 });
+      prisma.parada.create.mockResolvedValue({});
+      prisma.ruta.findUnique.mockResolvedValue({ id: 7 });
+
+      const sinReporte = {
+        fechaRealizacion: dtoBase.fechaRealizacion,
+        idLogistico: dtoBase.idLogistico,
+        pedidosIds: dtoBase.pedidosIds,
+      };
+
+      await expect(service.create(sinReporte)).resolves.toBeDefined();
+      expect(prisma.reporte.findUnique).not.toHaveBeenCalled();
+      expect(prisma.ruta.findFirst).not.toHaveBeenCalled();
+      expect(prisma.ruta.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.not.objectContaining({ idReporte: expect.anything() }),
+        }),
+      );
     });
 
     it('lanza error si el logístico no existe', async () => {
       prisma.logistico.findUnique.mockResolvedValue(null);
-      await expect(service.create(dtoBase)).rejects.toThrow(BadRequestException);
+      prisma.pedido.findMany.mockResolvedValue([pedido(1), pedido(2)]);
+
+      await expect(service.create(dtoBase)).rejects.toThrow('El logístico 1 no existe.');
     });
 
     it('lanza error si el reporte ya está asignado a otra ruta', async () => {
       prisma.logistico.findUnique.mockResolvedValue({ id: 1 });
+      prisma.pedido.findMany.mockResolvedValue([pedido(1), pedido(2)]);
+      prisma.centroDeDistribucion.findUnique.mockResolvedValue(centro);
       prisma.reporte.findUnique.mockResolvedValue({ id: 1 });
       prisma.ruta.findFirst.mockResolvedValue({ id: 99 });
 
-      await expect(service.create(dtoBase)).rejects.toThrow(BadRequestException);
+      await expect(service.create(dtoBase)).rejects.toThrow('El reporte 1 ya está asignado a la ruta 99.');
+      expect(prisma.ruta.create).not.toHaveBeenCalled();
     });
 
     it('lanza error si un pedido ya pertenece a otra ruta', async () => {
       prisma.logistico.findUnique.mockResolvedValue({ id: 1 });
-      prisma.reporte.findUnique.mockResolvedValue({ id: 1 });
-      prisma.ruta.findFirst.mockResolvedValue(null);
-      prisma.pedido.findMany.mockResolvedValue([{ id: 1, idRuta: 99 }, { id: 2, idRuta: null }]);
+      prisma.pedido.findMany.mockResolvedValue([pedido(1, { idRuta: 99 }), pedido(2)]);
+      prisma.centroDeDistribucion.findUnique.mockResolvedValue(centro);
 
-      await expect(service.create(dtoBase)).rejects.toThrow(BadRequestException);
+      await expect(service.create(dtoBase)).rejects.toThrow('Algunos pedidos ya pertenecen a otra ruta.');
+      expect(prisma.ruta.create).not.toHaveBeenCalled();
+    });
+
+    it('lanza error si los pedidos son de centros distintos', async () => {
+      prisma.logistico.findUnique.mockResolvedValue({ id: 1 });
+      prisma.pedido.findMany.mockResolvedValue([pedido(1), pedido(2, { idCentro: 11 })]);
+
+      await expect(service.create(dtoBase)).rejects.toThrow(
+        'No se pueden mezclar pedidos de diferentes centros de distribución en una misma ruta.',
+      );
+    });
+
+    it('lanza error si el centro no tiene coordenadas', async () => {
+      prisma.logistico.findUnique.mockResolvedValue({ id: 1 });
+      prisma.pedido.findMany.mockResolvedValue([pedido(1), pedido(2)]);
+      prisma.centroDeDistribucion.findUnique.mockResolvedValue({ id: 10, latitud: null, longitud: null });
+
+      await expect(service.create(dtoBase)).rejects.toThrow(
+        'El centro no tiene coordenadas. Actualiza su ubicación antes de generar rutas.',
+      );
+    });
+
+    it('lanza error si algún pedido no tiene coordenadas', async () => {
+      prisma.logistico.findUnique.mockResolvedValue({ id: 1 });
+      prisma.pedido.findMany.mockResolvedValue([pedido(1), pedido(2, { latitud: null, longitud: null })]);
+      prisma.centroDeDistribucion.findUnique.mockResolvedValue(centro);
+
+      await expect(service.create(dtoBase)).rejects.toThrow(
+        'Los pedidos sin coordenadas no pueden incluirse en la ruta: 2.',
+      );
+    });
+  });
+
+  describe('update', () => {
+    it('lanza error si el reporte a asignar no existe', async () => {
+      prisma.ruta.findUnique.mockResolvedValue({ id: 1 });
+      prisma.reporte.findUnique.mockResolvedValue(null);
+
+      await expect(service.update(1, { idReporte: 99 })).rejects.toThrow('El reporte 99 no existe.');
+      expect(prisma.ruta.update).not.toHaveBeenCalled();
+    });
+
+    it('lanza error si el reporte ya está asignado a otra ruta', async () => {
+      prisma.ruta.findUnique.mockResolvedValue({ id: 1 });
+      prisma.reporte.findUnique.mockResolvedValue({ id: 5 });
+      prisma.ruta.findFirst.mockResolvedValue({ id: 99 });
+
+      await expect(service.update(1, { idReporte: 5 })).rejects.toThrow(BadRequestException);
+      expect(prisma.ruta.update).not.toHaveBeenCalled();
+    });
+
+    it('asigna el reporte si es válido', async () => {
+      prisma.ruta.findUnique.mockResolvedValue({ id: 1 });
+      prisma.reporte.findUnique.mockResolvedValue({ id: 5 });
+      prisma.ruta.findFirst.mockResolvedValue(null);
+      prisma.ruta.update.mockResolvedValue({ id: 1 });
+
+      await expect(service.update(1, { idReporte: 5 })).resolves.toBeDefined();
+      expect(prisma.ruta.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ idReporte: 5 }) }),
+      );
     });
   });
 
@@ -242,8 +378,8 @@ describe('RutaService', () => {
 
       expect(resultado).toHaveLength(2);
       
-      expect(resultado![0].creadoPorOtroCoordinador).toBe(false);
-      expect(resultado![1].creadoPorOtroCoordinador).toBe(true);
+      expect(resultado![0]!.creadoPorOtroCoordinador).toBe(false);
+      expect(resultado![1]!.creadoPorOtroCoordinador).toBe(true);
     });
   });
 });
