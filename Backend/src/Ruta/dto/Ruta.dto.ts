@@ -4,36 +4,33 @@ import { EstadoRuta } from '../../generated/prisma/client.js';
 const ifDefined = (_object: unknown, value: unknown) => value !== undefined;
 
 export class CreateRutaDto {
-  @IsDateString()
-  @IsNotEmpty()
-  fechaRealizacion: string;
-
-  @IsInt()
-  @IsPositive()
-  proporcionPedidosTipoEntrega: number;
-
-  @IsInt()
-  @IsPositive()
-  cantidadTotalPedidos: number;
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsInt({ each: true })
+  @IsPositive({ each: true })
+  pedidosIds: number[];
 
   @IsInt()
   @IsPositive()
   idLogistico: number;
 
+  @IsDateString()
+  @IsNotEmpty()
+  fechaRealizacion: string;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  idCentro?: number;
+
+  @IsOptional()
+  @IsIn(['distancia', 'tiempo'])
+  criterio?: 'distancia' | 'tiempo';
+
   @IsOptional()
   @IsInt()
   @IsPositive()
   idReporte?: number;
-
-  @IsArray()
-  @IsInt({ each: true })
-  @IsOptional()
-  zonasIds?: number[];
-
-  @IsArray()
-  @IsInt({ each: true })
-  @IsOptional()
-  pedidosIds?: number[];
 }
 
 export class UpdateRutaDto {
@@ -101,33 +98,4 @@ export class IniciarRutaDto {
   @IsPositive() 
   @IsNotEmpty()
   idVehiculo: number;
-}
-
-export class GenerarRutaDto {
-  @IsArray()
-  @ArrayNotEmpty()
-  @IsInt({ each: true })
-  @IsPositive({ each: true })
-  pedidosIds: number[];
-
-  @IsInt()
-  @IsPositive()
-  idLogistico: number;
-
-  @IsInt()
-  @IsPositive()
-  idCentro: number;
-
-  @IsDateString()
-  @IsNotEmpty()
-  fechaRealizacion: string;
-
-  @IsOptional()
-  @IsIn(['distancia', 'tiempo'])
-  criterio?: 'distancia' | 'tiempo';
-
-  @IsOptional()
-  @IsInt()
-  @IsPositive()
-  idReporte?: number;
 }

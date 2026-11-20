@@ -4,7 +4,7 @@ import { GrafoService } from '../grafo/grafo.service.js';
 import { haversineKm, tiempoEstimadoMin } from '../geo/geo.utils.js';
 import type { Coordenadas } from '../geo/geo.types.js';
 import type { Criterio } from '../grafo/dto/camino.dto.js';
-import { CreateRutaDto, UpdateRutaDto, AsignarRutaDto, ValidarRutaDto, IniciarRutaDto, GenerarRutaDto } from './dto/Ruta.dto.js';
+import { CreateRutaDto, UpdateRutaDto, AsignarRutaDto, ValidarRutaDto, IniciarRutaDto } from './dto/Ruta.dto.js';
 import { EstadoRuta } from '../generated/prisma/client.js';
 
 interface PedidoGeneracion {
@@ -37,37 +37,110 @@ export class RutaService {
   ) {}
 
   async create(dto: CreateRutaDto) {
-    const { zonasIds, pedidosIds, idReporte, ...data } = dto;
+    const criterio: Criterio = dto.criterio ?? 'distancia';
+    const pedidosIds = [...new Set(dto.pedidosIds)];
 
-    const logistico = await this.prisma.logistico.findUnique({ where: { id: dto.idLogistico }});
+    const [logistico, pedidos] = await Promise.all([
+      this.prisma.logistico.findUnique({ where: { id: dto.idLogistico } }),
+      this.prisma.pedido.findMany({
+        where: { id: { in: pedidosIds } },
+        select: {
+          id: true,
+          idZona: true,
+          idCentro: true,
+          idRuta: true,
+          tipoEntrega: true,
+          latitud: true,
+          longitud: true,
+        },
+      }),
+    ]);
+
     if (!logistico) throw new BadRequestException(`El logístico ${dto.idLogistico} no existe.`);
 
-    // El reporte es opcional; si se envía, debe existir y no estar usado por otra ruta.
-    if (idReporte !== undefined) {
-      const reporte = await this.prisma.reporte.findUnique({ where: { id: idReporte }});
-      if (!reporte) throw new BadRequestException(`El reporte ${idReporte} no existe.`);
-
-      const rutaConReporte = await this.prisma.ruta.findFirst({ where: { idReporte } });
-      if (rutaConReporte) throw new BadRequestException(`El reporte ${idReporte} ya está asignado a la ruta ${rutaConReporte.id}.`);
+    if (pedidos.length !== pedidosIds.length) {
+      const encontrados = new Set(pedidos.map((p) => p.id));
+      const faltantes = pedidosIds.filter((id) => !encontrados.has(id));
+      throw new BadRequestException(`Pedidos no encontrados: ${faltantes.join(', ')}.`);
     }
 
-    if (pedidosIds && pedidosIds.length > 0) {
-      const pedidos = await this.prisma.pedido.findMany({ where: { id: { in: pedidosIds } } });
-      if (pedidos.length !== pedidosIds.length) throw new BadRequestException('Alguno de los pedidos no existe.');
-      const centros = new Set(pedidos.map(p => p.idCentro));
-      if (centros.size > 1) throw new BadRequestException('No se pueden mezclar pedidos de diferentes centros de distribución en una misma ruta.');
-      if (pedidos.some(p => p.idRuta !== null)) throw new BadRequestException('Algunos pedidos ya pertenecen a otra ruta.');
+    const centros = [...new Set(pedidos.map((p) => p.idCentro))];
+    if (centros.length !== 1) {
+      throw new BadRequestException('No se pueden mezclar pedidos de diferentes centros de distribución en una misma ruta.');
+    }
+    const idCentro = centros[0]!;
+    if (dto.idCentro !== undefined && dto.idCentro !== idCentro) {
+      throw new BadRequestException('El centro indicado no coincide con el centro de los pedidos.');
     }
 
-    return this.prisma.ruta.create({
-      data: {
-        ...data,
-        ...(idReporte !== undefined ? { idReporte } : {}),
-        fechaRealizacion: new Date(dto.fechaRealizacion),
-        ...(zonasIds ? { zonasCubiertas: { connect: zonasIds.map(id => ({ id })) } } : {}),
-        ...(pedidosIds ? { pedidos: { connect: pedidosIds.map(id => ({ id })) } } : {}),
-      },
-      include: { logistico: true, zonasCubiertas: true, pedidos: true }
+    if (pedidos.some((p) => p.idRuta !== null)) {
+      throw new BadRequestException('Algunos pedidos ya pertenecen a otra ruta.');
+    }
+
+    const centro = await this.prisma.centroDeDistribucion.findUnique({ where: { id: idCentro } });
+    if (!centro) throw new BadRequestException(`El centro ${idCentro} no existe.`);
+
+    if (centro.latitud == null || centro.longitud == null) {
+      throw new BadRequestException('El centro no tiene coordenadas. Actualiza su ubicación antes de generar rutas.');
+    }
+    const sinCoords = pedidos.filter((p) => p.latitud == null || p.longitud == null).map((p) => p.id);
+    if (sinCoords.length > 0) {
+      throw new BadRequestException(`Los pedidos sin coordenadas no pueden incluirse en la ruta: ${sinCoords.join(', ')}.`);
+    }
+
+    if (dto.idReporte !== undefined) {
+      const reporte = await this.prisma.reporte.findUnique({ where: { id: dto.idReporte } });
+      if (!reporte) throw new BadRequestException(`El reporte ${dto.idReporte} no existe.`);
+      const rutaConReporte = await this.prisma.ruta.findFirst({ where: { idReporte: dto.idReporte } });
+      if (rutaConReporte) throw new BadRequestException(`El reporte ${dto.idReporte} ya está asignado a la ruta ${rutaConReporte.id}.`);
+    }
+
+    const centroCoords: Coordenadas = { latitud: centro.latitud, longitud: centro.longitud };
+    const zonasPedidos = [...new Set(pedidos.map((p) => p.idZona))];
+    const costosZonas = await this.grafoService.matrizCostos(zonasPedidos, criterio);
+    const costosMap = this.construirMapaCostos(costosZonas);
+
+    const plan = this.ordenarPedidos(pedidos as PedidoGeneracion[], centroCoords, costosMap, criterio);
+
+    const zonasCubiertas = zonasPedidos.map((id) => ({ id }));
+    const cantidadTotalPedidos = pedidos.length;
+    const clasificados = pedidos.filter((p) => p.tipoEntrega !== 'Sin_Clasificar').length;
+    const proporcionPedidosTipoEntrega = Math.max(1, Math.round((clasificados / cantidadTotalPedidos) * 100));
+
+    return this.prisma.$transaction(async (tx) => {
+      const ruta = await tx.ruta.create({
+        data: {
+          fechaRealizacion: new Date(dto.fechaRealizacion),
+          proporcionPedidosTipoEntrega,
+          cantidadTotalPedidos,
+          idLogistico: dto.idLogistico,
+          ...(dto.idReporte !== undefined ? { idReporte: dto.idReporte } : {}),
+          zonasCubiertas: { connect: zonasCubiertas },
+          pedidos: { connect: pedidosIds.map((id) => ({ id })) },
+        },
+      });
+
+      for (const parada of plan) {
+        await tx.parada.create({
+          data: {
+            orden: parada.orden,
+            distanciaDesdeAnteriorKm: parada.distanciaDesdeAnteriorKm,
+            tiempoEstimadoMin: parada.tiempoEstimadoMin,
+            pedidoAsociados: { connect: { id: parada.pedidoId } },
+            rutas: { connect: { id: ruta.id } },
+          },
+        });
+      }
+
+      return tx.ruta.findUnique({
+        where: { id: ruta.id },
+        include: {
+          logistico: true,
+          zonasCubiertas: true,
+          pedidos: true,
+          paradas: { orderBy: { orden: 'asc' }, include: { pedidoAsociados: true } },
+        },
+      });
     });
   }
 
@@ -299,107 +372,6 @@ export class RutaService {
         validada: true,
         realizada: true,
       }
-    });
-  }
-
-  async generarRuta(dto: GenerarRutaDto) {
-    const criterio: Criterio = dto.criterio ?? 'distancia';
-    const pedidosIds = [...new Set(dto.pedidosIds)];
-
-    const [centro, logistico, pedidos] = await Promise.all([
-      this.prisma.centroDeDistribucion.findUnique({ where: { id: dto.idCentro } }),
-      this.prisma.logistico.findUnique({ where: { id: dto.idLogistico } }),
-      this.prisma.pedido.findMany({
-        where: { id: { in: pedidosIds } },
-        select: {
-          id: true,
-          idZona: true,
-          idCentro: true,
-          idRuta: true,
-          tipoEntrega: true,
-          latitud: true,
-          longitud: true,
-        },
-      }),
-    ]);
-
-    if (!centro) throw new BadRequestException(`El centro ${dto.idCentro} no existe.`);
-    if (!logistico) throw new BadRequestException(`El logístico ${dto.idLogistico} no existe.`);
-
-    if (pedidos.length !== pedidosIds.length) {
-      const encontrados = new Set(pedidos.map((p) => p.id));
-      const faltantes = pedidosIds.filter((id) => !encontrados.has(id));
-      throw new BadRequestException(`Pedidos no encontrados: ${faltantes.join(', ')}.`);
-    }
-
-    if (pedidos.some((p) => p.idCentro !== dto.idCentro)) {
-      throw new BadRequestException('Todos los pedidos deben pertenecer al centro indicado.');
-    }
-    if (pedidos.some((p) => p.idRuta !== null)) {
-      throw new BadRequestException('Algunos pedidos ya pertenecen a otra ruta.');
-    }
-
-    if (centro.latitud == null || centro.longitud == null) {
-      throw new BadRequestException('El centro no tiene coordenadas. Actualiza su ubicación antes de generar rutas.');
-    }
-    const sinCoords = pedidos.filter((p) => p.latitud == null || p.longitud == null).map((p) => p.id);
-    if (sinCoords.length > 0) {
-      throw new BadRequestException(`Los pedidos sin coordenadas no pueden incluirse en la ruta: ${sinCoords.join(', ')}.`);
-    }
-
-    if (dto.idReporte !== undefined) {
-      const reporte = await this.prisma.reporte.findUnique({ where: { id: dto.idReporte } });
-      if (!reporte) throw new BadRequestException(`El reporte ${dto.idReporte} no existe.`);
-      const rutaConReporte = await this.prisma.ruta.findFirst({ where: { idReporte: dto.idReporte } });
-      if (rutaConReporte) throw new BadRequestException(`El reporte ${dto.idReporte} ya está asignado a la ruta ${rutaConReporte.id}.`);
-    }
-
-    const centroCoords: Coordenadas = { latitud: centro.latitud, longitud: centro.longitud };
-    const zonasPedidos = [...new Set(pedidos.map((p) => p.idZona))];
-    const costosZonas = await this.grafoService.matrizCostos(zonasPedidos, criterio);
-    const costosMap = this.construirMapaCostos(costosZonas);
-
-    const plan = this.ordenarPedidos(pedidos as PedidoGeneracion[], centroCoords, costosMap, criterio);
-
-    const zonasCubiertas = zonasPedidos.map((id) => ({ id }));
-    const cantidadTotalPedidos = pedidos.length;
-    const clasificados = pedidos.filter((p) => p.tipoEntrega !== 'Sin_Clasificar').length;
-    const proporcionPedidosTipoEntrega = Math.max(1, Math.round((clasificados / cantidadTotalPedidos) * 100));
-
-    return this.prisma.$transaction(async (tx) => {
-      const ruta = await tx.ruta.create({
-        data: {
-          fechaRealizacion: new Date(dto.fechaRealizacion),
-          proporcionPedidosTipoEntrega,
-          cantidadTotalPedidos,
-          idLogistico: dto.idLogistico,
-          ...(dto.idReporte !== undefined ? { idReporte: dto.idReporte } : {}),
-          zonasCubiertas: { connect: zonasCubiertas },
-          pedidos: { connect: pedidosIds.map((id) => ({ id })) },
-        },
-      });
-
-      for (const parada of plan) {
-        await tx.parada.create({
-          data: {
-            orden: parada.orden,
-            distanciaDesdeAnteriorKm: parada.distanciaDesdeAnteriorKm,
-            tiempoEstimadoMin: parada.tiempoEstimadoMin,
-            pedidoAsociados: { connect: { id: parada.pedidoId } },
-            rutas: { connect: { id: ruta.id } },
-          },
-        });
-      }
-
-      return tx.ruta.findUnique({
-        where: { id: ruta.id },
-        include: {
-          logistico: true,
-          zonasCubiertas: true,
-          pedidos: true,
-          paradas: { orderBy: { orden: 'asc' }, include: { pedidoAsociados: true } },
-        },
-      });
     });
   }
 
