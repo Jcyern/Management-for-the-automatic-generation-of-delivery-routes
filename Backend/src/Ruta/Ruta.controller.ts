@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req } from '@nestjs/common';
 import { RutaService } from './Ruta.service.js';
-import { CreateRutaDto, UpdateRutaDto, AsignarRutaDto, ValidarRutaDto, IniciarRutaDto } from './dto/Ruta.dto.js';
+import { CreateRutaDto, UpdateRutaDto, AsignarRutaDto, ValidarRutaDto, IniciarRutaDto, GenerarRutaDto } from './dto/Ruta.dto.js';
 import { Roles } from '../Auth/roles.decorator.js';
 import { RolEfectivo } from '../Auth/roles.js';
 
@@ -12,6 +12,12 @@ export class RutaController {
   @Roles(RolEfectivo.LOGISTICO, RolEfectivo.ADMINISTRADOR)
   create(@Body() dto: CreateRutaDto) {
     return this.rutaService.create(dto);
+  }
+
+  @Post('generar')
+  @Roles(RolEfectivo.LOGISTICO, RolEfectivo.ADMINISTRADOR)
+  generar(@Body() dto: GenerarRutaDto) {
+    return this.rutaService.generarRuta(dto);
   }
 
   @Get()

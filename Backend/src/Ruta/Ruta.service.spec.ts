@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PrismaService } from '../prismaModule/prisma.service.js';
+import { GrafoService } from '../grafo/grafo.service.js';
 import { RutaService } from './Ruta.service.js';
 import { EstadoRuta } from '../generated/prisma/client.js';
 
@@ -20,8 +21,13 @@ const prisma = vi.hoisted(() => ({
   asignar: { findFirst: vi.fn(), create: vi.fn() },
   validar: { create: vi.fn() },
   realizar: { create: vi.fn() },
-  centroDeDistribucion: { findFirst: vi.fn() },
+  centroDeDistribucion: { findFirst: vi.fn(), findUnique: vi.fn() },
+  parada: { create: vi.fn() },
   $transaction: vi.fn(),
+}));
+
+const grafo = vi.hoisted(() => ({
+  matrizCostos: vi.fn(),
 }));
 
 describe('RutaService', () => {
@@ -33,7 +39,11 @@ describe('RutaService', () => {
     prisma.$transaction.mockImplementation(async (cb: any) => cb(prisma));
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RutaService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        RutaService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: GrafoService, useValue: grafo },
+      ],
     }).compile();
     service = module.get(RutaService);
   });

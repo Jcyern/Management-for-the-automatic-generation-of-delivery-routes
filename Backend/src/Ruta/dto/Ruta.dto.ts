@@ -1,4 +1,4 @@
-import { IsArray, IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, ValidateIf, IsString, IsBoolean } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsBoolean, IsDateString, IsEnum, IsIn, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, ValidateIf } from 'class-validator';
 import { EstadoRuta } from '../../generated/prisma/client.js';
 
 const ifDefined = (_object: unknown, value: unknown) => value !== undefined;
@@ -101,4 +101,33 @@ export class IniciarRutaDto {
   @IsPositive() 
   @IsNotEmpty()
   idVehiculo: number;
+}
+
+export class GenerarRutaDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsInt({ each: true })
+  @IsPositive({ each: true })
+  pedidosIds: number[];
+
+  @IsInt()
+  @IsPositive()
+  idLogistico: number;
+
+  @IsInt()
+  @IsPositive()
+  idCentro: number;
+
+  @IsDateString()
+  @IsNotEmpty()
+  fechaRealizacion: string;
+
+  @IsOptional()
+  @IsIn(['distancia', 'tiempo'])
+  criterio?: 'distancia' | 'tiempo';
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  idReporte?: number;
 }
