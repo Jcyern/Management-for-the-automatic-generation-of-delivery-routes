@@ -76,6 +76,11 @@ model CentroDeDistribucion {
   nombre            String
   programaLogistico String
 
+  // ubicacion del centro, punto de partida de las rutas
+  direccion String?
+  latitud   Float?
+  longitud  Float?
+
   pedidos                 Pedido[]              @relation("Pertenece")
   repartidores            Repartidor[]           @relation("AsignarCentro")
   coordinadorCrearRutas   CoordinadorLogistico[] @relation("CrearRutas")
@@ -118,14 +123,21 @@ model Ruta {
   realizada Realizar? @relation(name: "Realizar")
 
 
-  idReporte Int
-  reporte Reporte @relation(fields: [idReporte], references: [id], name: "GenerarReporte")
+  idReporte Int?
+  reporte Reporte? @relation(fields: [idReporte], references: [id], name: "GenerarReporte")
 
 }
 
 model Parada {
   id              Int     @id @default(autoincrement())
   estadoEjecucion EstadoParada?
+
+  // posicion de la parada dentro del recorrido de la ruta
+  orden Int @default(0)
+
+  // metricas calculadas por la generacion de rutas
+  distanciaDesdeAnteriorKm Float?
+  tiempoEstimadoMin        Int?
 
   pedidoAsociados Pedido[] @relation(name: "Asociado")
   rutas           Ruta[]  @relation("ContieneParada")
@@ -143,8 +155,12 @@ model Pedido {
   destinatario String
   direccion    String
 
-  idParada Int
-  parada Parada @relation(fields: [idParada], references: [id], name: "Asociado")
+  // coordenadas obtenidas por geocoding (null si no se pudo resolver)
+  latitud  Float?
+  longitud Float?
+
+  idParada Int?
+  parada Parada? @relation(fields: [idParada], references: [id], onDelete: SetNull, name: "Asociado")
   
   idCentro      Int
   centro        CentroDeDistribucion @relation(fields: [idCentro], references: [id], name: "Pertenece")
@@ -152,8 +168,8 @@ model Pedido {
   idCoordinador Int
   coordinador   CoordinadorLogistico @relation(fields: [idCoordinador], references: [idUser], name: "Ingresa")
   
-  idRuta Int
-  ruta Ruta @relation(fields: [idRuta], references: [id], name:"Contener")
+  idRuta Int?
+  ruta Ruta? @relation(fields: [idRuta], references: [id], name:"Contener")
 
   idZona Int
   zona Zona @relation(fields: [idZona], references: [id], name: "PertenecerZona")
@@ -264,6 +280,15 @@ model Reprogramar {
 }
 
 
+
+// Cache de geocoding: evita repetir llamadas al proveedor externo
+model GeocodingCache {
+  direccionNormalizada String   @id
+  latitud              Float
+  longitud             Float
+  proveedor            String
+  creadoEn             DateTime @default(now())
+}
 
 // Enum definidos 
 

@@ -10,6 +10,14 @@ const PESO_POR_CRITERIO: Record<Criterio, string> = {
 const MAX_SALTOS = 6;
 const MAX_LIMITE = 10;
 
+export interface CostoZonas {
+  origen: number;
+  destino: number;
+  costo: number;
+  distanciaKm: number;
+  tiempoMin: number;
+}
+
 @Injectable()
 export class GrafoService {
   constructor(private readonly neo4j: Neo4jService) {}
@@ -51,6 +59,36 @@ export class GrafoService {
        ORDER BY costo ASC
        LIMIT ${tope}`,
       { origen: origenId, destino: destinoId },
+    );
+  }
+
+  /**
+   * Calcula el costo entre pares de zonas usando el camino más corto según el
+   * criterio indicado. Devuelve la distancia y el tiempo del camino elegido.
+   * Los pares sin camino entre ellos no aparecen en el resultado.
+   */
+  async matrizCostos(zonaIds: number[], criterio: Criterio): Promise<CostoZonas[]> {
+    const ids = [...new Set(zonaIds)];
+    const pares: Array<{ origen: number; destino: number }> = [];
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        pares.push({ origen: ids[i]!, destino: ids[j]! });
+      }
+    }
+    if (pares.length === 0) return [];
+
+    const peso = PESO_POR_CRITERIO[criterio];
+    return this.neo4j.read<CostoZonas>(
+      `UNWIND $pares AS par
+       MATCH (a:Zona {id: par.origen}), (b:Zona {id: par.destino})
+       CALL apoc.algo.dijkstra(a, b, 'CONECTA', '${peso}')
+       YIELD path, weight
+       RETURN par.origen AS origen,
+              par.destino AS destino,
+              weight AS costo,
+              reduce(d = 0.0, r IN relationships(path) | d + toFloat(r.distanciaKm)) AS distanciaKm,
+              reduce(t = 0.0, r IN relationships(path) | t + toFloat(r.tiempoMin)) AS tiempoMin`,
+      { pares },
     );
   }
 }
