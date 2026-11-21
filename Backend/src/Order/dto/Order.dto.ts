@@ -19,7 +19,8 @@ import {
  * Los campos con valor por defecto en el schema (prioridad, tipoEntrega,
  * fechaPrevista, estado) son opcionales aquí.
  * Las relaciones se envían por clave foránea: idCentro, idCoordinador,
- * idZona, idParada e idRuta.
+ * idZona, idParada e idRuta. idParada e idRuta son opcionales porque la
+ * parada y la ruta se asignan al generar la ruta.
  */
 
 export class CreateOrderDto {
@@ -51,9 +52,10 @@ export class CreateOrderDto {
   @IsPositive()
   idZona: number;
 
+  @IsOptional()
   @IsInt()
   @IsPositive()
-  idParada: number;
+  idParada?: number;
 
   @IsOptional()
   @IsInt()

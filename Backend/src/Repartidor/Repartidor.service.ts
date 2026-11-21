@@ -74,7 +74,7 @@ export class RepartidorService {
     if (!repartidor) throw new NotFoundException(`Repartidor ${idUser} no encontrado`);
 
     if (repartidor._count.rutasAsignadas > 0 || repartidor._count.rutasRealizadas > 0) {
-      throw new BadRequestException('No se puede eliminar el repartidor porque tiene rutas asociadas.');
+      throw new BadRequestException('No se puede eliminar el repartidor porque tiene rutas asociadas. Primero reasigne o elimine sus rutas.');
     }
 
     return this.prisma.repartidor.delete({ where: { idUser } });
