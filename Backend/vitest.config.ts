@@ -9,5 +9,10 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
+    // La suite completa satura la CPU en WSL: al ejecutar los 13 archivos en
+    // paralelo, el primer beforeEach supera el timeout por defecto de 10 s.
+    fileParallelism: false,
+    hookTimeout: 30_000,
+    testTimeout: 20_000,
   },
 });

@@ -1,11 +1,15 @@
 // --- Zonas ---
+// Asegura que la zona de prueba no tenga conexiones previas
+MATCH (z:Zona {id: 7}) DETACH DELETE z;
+
 UNWIND [
   {id: 1, nombre: 'Zona Norte'},
   {id: 2, nombre: 'Zona Sur'},
   {id: 3, nombre: 'Zona Este'},
   {id: 4, nombre: 'Zona Oeste'},
   {id: 5, nombre: 'Zona Centro'},
-  {id: 6, nombre: 'Zona Extra'}
+  {id: 6, nombre: 'Zona Extra'},
+  {id: 7, nombre: 'Zona Aislada'}
 ] AS z
 MERGE (n:Zona {id: z.id}) SET n.nombre = z.nombre;
 
