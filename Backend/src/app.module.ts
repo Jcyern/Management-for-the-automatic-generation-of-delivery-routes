@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller.js';
@@ -9,13 +10,14 @@ import { PrismaModule } from './prismaModule/prisma.module.js';
 import { AuthModule } from './Auth/Auth.module.js';
 import { OrderModule } from './Order/Order.module.js';
 import { CentroModule } from './Centro/Centro.module.js';
-import { ZonaModule } from './Zona/Zona.module.js';
+import { ZonaHexModule } from './features/zona/zona.module.js';
 import { FlotaModule } from './Flota/Flota.module.js';
 import { VehiculoModule } from './Vehiculo/Vehiculo.module.js';
 import { RepartidorModule } from './Repartidor/Repartidor.module.js';
 import { RutaModule } from './Ruta/Ruta.module.js';
 import { RedisModule } from './redis/redis.module.js';
 import { TiempoRealModule } from './tiempo-real/tiempo-real.module.js';
+import { DomainExceptionFilter } from './shared/adapters/inbound/http/DomainExceptionFilter.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -29,10 +31,13 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
     Neo4jModule, GrafoModule, RedisModule, TiempoRealModule,
     PrismaModule, AuthModule, OrderModule, CentroModule,
-    ZonaModule, FlotaModule, VehiculoModule,
+    ZonaHexModule, FlotaModule, VehiculoModule,
     RepartidorModule, RutaModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: DomainExceptionFilter },
+  ],
 })
 export class AppModule {}
