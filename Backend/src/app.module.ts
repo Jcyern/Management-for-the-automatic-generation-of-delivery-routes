@@ -11,6 +11,7 @@ import { AuthModule } from './Auth/Auth.module.js';
 import { OrderModule } from './Order/Order.module.js';
 import { CentroModule } from './Centro/Centro.module.js';
 import { ZonaHexModule } from './features/zona/zona.module.js';
+import { CoordinadorHexModule } from './features/coordinador/coordinador.module.js';
 import { FlotaModule } from './Flota/Flota.module.js';
 import { VehiculoModule } from './Vehiculo/Vehiculo.module.js';
 import { RepartidorModule } from './Repartidor/Repartidor.module.js';
@@ -31,7 +32,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
     Neo4jModule, GrafoModule, RedisModule, TiempoRealModule,
     PrismaModule, AuthModule, OrderModule, CentroModule,
-    ZonaHexModule, FlotaModule, VehiculoModule,
+    ZonaHexModule, CoordinadorHexModule, FlotaModule, VehiculoModule,
     RepartidorModule, RutaModule,
   ],
   controllers: [AppController],
