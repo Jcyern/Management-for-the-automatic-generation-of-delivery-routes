@@ -31,17 +31,17 @@ export function aCoordinadorOutput(coordinador: Coordinador): CoordinadorOutput 
       nombre: c.nombre,
     })),
     logistico: subtipo(
-      coordinador.tieneLogistico,
+      coordinador.esLogistico,
       coordinador.id,
       coordinador.nombre,
     ),
     supervisor: subtipo(
-      coordinador.tieneSupervisor,
+      coordinador.esSupervisor,
       coordinador.id,
       coordinador.nombre,
     ),
     administrador: subtipo(
-      coordinador.tieneAdministrador,
+      coordinador.esAdministrador,
       coordinador.id,
       coordinador.nombre,
     ),

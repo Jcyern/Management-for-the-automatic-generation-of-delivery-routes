@@ -46,9 +46,9 @@ function aDominio(row: CoordinadorRow): Coordinador {
       id: c.id,
       nombre: c.nombre,
     })),
-    tieneLogistico: row.logistico !== null,
-    tieneSupervisor: row.supervisor !== null,
-    tieneAdministrador: row.administrador !== null,
+    esLogistico: row.logistico !== null,
+    esSupervisor: row.supervisor !== null,
+    esAdministrador: row.administrador !== null,
   });
 }
 

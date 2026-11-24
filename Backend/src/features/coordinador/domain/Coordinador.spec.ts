@@ -11,9 +11,9 @@ describe('Coordinador (dominio)', () => {
     especialidad: 'LOGISTICO' as const,
     centrosCrearRuta: [{ id: 10, nombre: 'Centro Norte' }],
     centrosValidarRuta: [],
-    tieneLogistico: true,
-    tieneSupervisor: false,
-    tieneAdministrador: false,
+    esLogistico: true,
+    esSupervisor: false,
+    esAdministrador: false,
   };
 
   it('rehidrata un coordinador con sus datos', () => {

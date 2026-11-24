@@ -27,9 +27,9 @@ export interface CoordinadorParams {
   especialidad: EspecialidadCoordinador;
   centrosCrearRuta: CentroResumen[];
   centrosValidarRuta: CentroResumen[];
-  tieneLogistico: boolean;
-  tieneSupervisor: boolean;
-  tieneAdministrador: boolean;
+  esLogistico: boolean;
+  esSupervisor: boolean;
+  esAdministrador: boolean;
 }
 
 /**
@@ -76,16 +76,16 @@ export class Coordinador {
     return this.params.centrosValidarRuta;
   }
 
-  get tieneLogistico(): boolean {
-    return this.params.tieneLogistico;
+  get esLogistico(): boolean {
+    return this.params.esLogistico;
   }
 
-  get tieneSupervisor(): boolean {
-    return this.params.tieneSupervisor;
+  get esSupervisor(): boolean {
+    return this.params.esSupervisor;
   }
 
-  get tieneAdministrador(): boolean {
-    return this.params.tieneAdministrador;
+  get esAdministrador(): boolean {
+    return this.params.esAdministrador;
   }
 
   static validarNombre(nombre: string): string {
