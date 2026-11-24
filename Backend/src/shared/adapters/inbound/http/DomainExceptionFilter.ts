@@ -9,6 +9,7 @@ import {
   DomainError,
   RecursoNoEncontrado,
   ReglaDeNegocioViolada,
+  UbicacionNoResuelta,
 } from '../../../domain/DomainError.js';
 
 interface HttpRequestLike {
@@ -46,6 +47,9 @@ export class DomainExceptionFilter implements ExceptionFilter {
     }
     if (exception instanceof Conflicto) {
       return HttpStatus.CONFLICT;
+    }
+    if (exception instanceof UbicacionNoResuelta) {
+      return HttpStatus.UNPROCESSABLE_ENTITY;
     }
     return HttpStatus.INTERNAL_SERVER_ERROR;
   }

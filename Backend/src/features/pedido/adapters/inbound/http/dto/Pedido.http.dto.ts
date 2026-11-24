@@ -11,19 +11,18 @@ import {
   EstadoPedido,
   Prioridad,
   TipoPedido,
-} from '../../generated/prisma/client.js';
+} from '../../../../../../generated/prisma/client.js';
+import type {
+  EstadoPedidoDominio,
+  PrioridadPedido,
+  TipoEntregaPedido,
+} from '../../../../domain/Pedido.js';
 
 /**
- * DTO para crear un pedido.
- *
- * Los campos con valor por defecto en el schema (prioridad, tipoEntrega,
- * fechaPrevista, estado) son opcionales aquí.
- * Las relaciones se envían por clave foránea: idCentro, idCoordinador,
- * idZona, idParada e idRuta. idParada e idRuta son opcionales porque la
- * parada y la ruta se asignan al generar la ruta.
+ * DTO HTTP para crear un pedido. Se mantiene la forma del antiguo
+ * `CreateOrderDto`; la ruta pública sigue siendo `/order`.
  */
-
-export class CreateOrderDto {
+export class CreatePedidoHttpDto {
   @IsOptional()
   @IsEnum(Prioridad)
   prioridad?: Prioridad;
@@ -75,11 +74,8 @@ export class CreateOrderDto {
   estado?: EstadoPedido;
 }
 
-/**
- * DTO para actualizar un pedido.
- * Todos los campos son opcionales; solo se actualiza lo que se envía.
- */
-export class UpdateOrderDto {
+/** DTO HTTP para actualizar un pedido. Todos los campos son opcionales. */
+export class UpdatePedidoHttpDto {
   @IsOptional()
   @IsEnum(Prioridad)
   prioridad?: Prioridad;
@@ -136,11 +132,15 @@ export class UpdateOrderDto {
   estado?: EstadoPedido;
 }
 
-/**
- * DTO para filtrar el listado de pedidos.
- */
-export class FilterOrderDto {
+/** Filtro opcional por estado en `GET /order`. */
+export class FilterPedidoHttpDto {
   @IsOptional()
   @IsEnum(EstadoPedido)
   estado?: EstadoPedido;
 }
+
+// Los enums del cliente Prisma y los del dominio tienen los mismos valores;
+// estos aliases documentan la conversión que hace el controller.
+export type PrioridadHttp = PrioridadPedido;
+export type TipoEntregaHttp = TipoEntregaPedido;
+export type EstadoPedidoHttp = EstadoPedidoDominio;
