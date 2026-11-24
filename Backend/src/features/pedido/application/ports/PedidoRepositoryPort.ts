@@ -8,6 +8,6 @@ export const PEDIDO_REPOSITORY = Symbol('PEDIDO_REPOSITORY');
 export interface PedidoRepositoryPort {
   guardar(pedido: Pedido): Promise<Pedido>;
   buscarPorId(id: number): Promise<Pedido | null>;
-  listar(estado?: EstadoPedidoDominio): Promise<Pedido[]>;
+  listar(estado?: EstadoPedidoDominio | null): Promise<Pedido[]>;
   eliminar(id: number): Promise<Pedido>;
 }

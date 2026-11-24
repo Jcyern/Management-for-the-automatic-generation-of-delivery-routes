@@ -10,8 +10,10 @@ export class ListarPedidosUseCase {
     this.repo = repo;
   }
 
-  async execute(estado?: EstadoPedidoDominio): Promise<PedidoOutput[]> {
-    const pedidos = await this.repo.listar(estado);
+  async execute(
+    estado?: EstadoPedidoDominio | null,
+  ): Promise<PedidoOutput[]> {
+    const pedidos = await this.repo.listar(estado ?? undefined);
     return pedidos.map(aPedidoOutput);
   }
 }

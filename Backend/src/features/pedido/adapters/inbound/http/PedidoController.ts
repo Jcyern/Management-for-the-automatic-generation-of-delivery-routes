@@ -73,11 +73,7 @@ export class PedidoController {
 
   @Get()
   findAll(@Query() filtro: FilterPedidoHttpDto) {
-    return this.listar.execute(
-      filtro.estado !== undefined
-        ? (filtro.estado as EstadoPedidoDominio)
-        : undefined,
-    );
+    return this.listar.execute(filtro.estado as EstadoPedidoDominio | null);
   }
 
   @Get(':id')

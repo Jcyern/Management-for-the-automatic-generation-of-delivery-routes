@@ -122,9 +122,9 @@ export class PrismaPedidoRepository implements PedidoRepositoryPort {
     return row ? aDominio(row as PedidoRow) : null;
   }
 
-  async listar(estado?: EstadoPedidoDominio): Promise<Pedido[]> {
+  async listar(estado?: EstadoPedidoDominio | null): Promise<Pedido[]> {
     const rows = await this.prisma.pedido.findMany({
-      where: estado !== undefined ? { estado: estado as EstadoPedido } : {},
+      where: estado != null ? { estado: estado as EstadoPedido } : {},
       include: PEDIDO_INCLUDE,
       orderBy: { id: 'asc' },
     });

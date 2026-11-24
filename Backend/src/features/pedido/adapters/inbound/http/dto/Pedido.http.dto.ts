@@ -132,11 +132,11 @@ export class UpdatePedidoHttpDto {
   estado?: EstadoPedido;
 }
 
-/** Filtro opcional por estado en `GET /order`. */
+/** Filtro opcional por estado en `GET /order`. `null` devuelve todos. */
 export class FilterPedidoHttpDto {
   @IsOptional()
   @IsEnum(EstadoPedido)
-  estado?: EstadoPedido;
+  estado?: EstadoPedido | null;
 }
 
 // Los enums del cliente Prisma y los del dominio tienen los mismos valores;
