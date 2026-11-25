@@ -19,7 +19,7 @@ function pedidoPersistido(id: number, estado: PedidoParams['estado']): Pedido {
     tipoEntrega: 'Sin_Clasificar',
     fechaPrevista: new Date('2026-01-01T00:00:00.000Z'),
     fechaEntrega: null,
-    estado,
+    estado: estado ?? null,
     destinatario: 'Ana Pérez',
     direccion: 'Calle 23 #10',
     coordenadas: { latitud: 23.1, longitud: -82.4 },

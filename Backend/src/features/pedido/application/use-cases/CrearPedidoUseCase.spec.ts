@@ -47,6 +47,11 @@ function pedidoPersistido(overrides: Partial<PedidoParams> = {}): Pedido {
   });
 }
 
+function pedidoGuardado(): Pedido {
+  expect(repo.guardar).toHaveBeenCalledTimes(1);
+  return repo.guardar.mock.calls[0]![0]! as Pedido;
+}
+
 const input = {
   destinatario: 'Ana Pérez',
   direccion: 'Calle 23 #10',
@@ -76,7 +81,7 @@ describe('CrearPedidoUseCase', () => {
 
     expect(geocodificacion.geocodificar).toHaveBeenCalledWith(input.direccion);
     expect(repo.guardar).toHaveBeenCalledTimes(1);
-    const guardado = repo.guardar.mock.calls[0][0] as Pedido;
+    const guardado = pedidoGuardado();
     expect(guardado.coordenadas).toEqual({ latitud: 23.1, longitud: -82.4 });
     expect(guardado.idParada).toBe(4);
     expect(resultado.id).toBe(1);
@@ -91,7 +96,7 @@ describe('CrearPedidoUseCase', () => {
     const { idParada: _idParada, ...sinParada } = input;
     await useCase.execute(sinParada);
 
-    const guardado = repo.guardar.mock.calls[0][0] as Pedido;
+    const guardado = pedidoGuardado();
     expect(guardado.idParada).toBeNull();
   });
 
@@ -100,7 +105,7 @@ describe('CrearPedidoUseCase', () => {
 
     await useCase.execute(input);
 
-    const guardado = repo.guardar.mock.calls[0][0] as Pedido;
+    const guardado = pedidoGuardado();
     expect(guardado.coordenadas).toBeNull();
   });
 

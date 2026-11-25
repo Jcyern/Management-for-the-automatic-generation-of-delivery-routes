@@ -47,6 +47,11 @@ function pedidoPersistido(overrides: Partial<PedidoParams> = {}): Pedido {
   });
 }
 
+function pedidoGuardado(): Pedido {
+  expect(repo.guardar).toHaveBeenCalledTimes(1);
+  return repo.guardar.mock.calls[0]![0]! as Pedido;
+}
+
 describe('ActualizarPedidoUseCase', () => {
   let useCase: ActualizarPedidoUseCase;
 
@@ -67,7 +72,7 @@ describe('ActualizarPedidoUseCase', () => {
     await useCase.execute(1, { direccion: 'Calle 25 #12' });
 
     expect(geocodificacion.geocodificar).toHaveBeenCalledWith('Calle 25 #12');
-    const guardado = repo.guardar.mock.calls[0][0] as Pedido;
+    const guardado = pedidoGuardado();
     expect(guardado.direccion).toBe('Calle 25 #12');
     expect(guardado.coordenadas).toEqual({ latitud: 23.2, longitud: -82.5 });
   });
@@ -77,7 +82,7 @@ describe('ActualizarPedidoUseCase', () => {
 
     await useCase.execute(1, { direccion: 'Dirección rara' });
 
-    const guardado = repo.guardar.mock.calls[0][0] as Pedido;
+    const guardado = pedidoGuardado();
     expect(guardado.coordenadas).toBeNull();
   });
 
@@ -85,7 +90,7 @@ describe('ActualizarPedidoUseCase', () => {
     await useCase.execute(1, { prioridad: 'Urgente' });
 
     expect(geocodificacion.geocodificar).not.toHaveBeenCalled();
-    const guardado = repo.guardar.mock.calls[0][0] as Pedido;
+    const guardado = pedidoGuardado();
     expect(guardado.coordenadas).toEqual({ latitud: 23.1, longitud: -82.4 });
     expect(guardado.prioridad).toBe('Urgente');
   });
