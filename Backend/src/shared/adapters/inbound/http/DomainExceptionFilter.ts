@@ -9,6 +9,7 @@ import {
   DomainError,
   RecursoNoEncontrado,
   ReglaDeNegocioViolada,
+  UbicacionNoResuelta,
 } from '../../../domain/DomainError.js';
 
 interface HttpRequestLike {
@@ -24,7 +25,7 @@ const TEXTO_ESTADO: Record<number, string> = {
   [HttpStatus.FORBIDDEN]: 'Forbidden',
   [HttpStatus.NOT_FOUND]: 'Not Found',
   [HttpStatus.CONFLICT]: 'Conflict',
-  [HttpStatus.UNPROCESSABLE_ENTITY]: 'Unprocessable Entity', // ← nueva
+  [HttpStatus.UNPROCESSABLE_ENTITY]: 'Unprocessable Entity',
   [HttpStatus.INTERNAL_SERVER_ERROR]: 'Internal Server Error',
 };
 
@@ -60,6 +61,9 @@ export class DomainExceptionFilter implements ExceptionFilter {
     }
     if (exception instanceof Conflicto) {
       return HttpStatus.CONFLICT;
+    }
+    if (exception instanceof UbicacionNoResuelta) {
+      return HttpStatus.UNPROCESSABLE_ENTITY;
     }
     return HttpStatus.INTERNAL_SERVER_ERROR;
   }

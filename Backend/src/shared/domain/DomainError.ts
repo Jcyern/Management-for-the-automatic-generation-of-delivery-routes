@@ -11,7 +11,7 @@ export class RecursoNoEncontrado extends DomainError {
   readonly codigo = 'NO_ENCONTRADO';
 
   constructor(recurso: string, id: unknown) {
-    super(`${recurso} ${id} no encontrado`);
+    super(`${recurso} ${String(id)} no encontrado`);
   }
 }
 
@@ -21,4 +21,15 @@ export class ReglaDeNegocioViolada extends DomainError {
 
 export class Conflicto extends DomainError {
   readonly codigo = 'CONFLICTO';
+}
+
+/** La dirección no pudo resolverse y el modo estricto está activo. */
+export class UbicacionNoResuelta extends DomainError {
+  readonly codigo = 'UBICACION_NO_RESUELTA';
+
+  constructor(direccion: string) {
+    super(
+      `No se pudo obtener la ubicación para la dirección "${direccion}". Verifícala e intenta de nuevo.`,
+    );
+  }
 }
