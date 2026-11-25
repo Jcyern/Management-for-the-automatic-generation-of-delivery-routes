@@ -3,16 +3,14 @@ import {
   IsInt,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsString,
   Max,
   Min,
-  ValidateIf,
 } from 'class-validator';
 
-const ifDefined = (_object: unknown, value: unknown) => value !== undefined;
-
-export class CreateCentroDto {
+export class CreateCentroHttpDto {
   @IsString()
   @IsNotEmpty()
   nombre: string;
@@ -21,59 +19,59 @@ export class CreateCentroDto {
   @IsNotEmpty()
   programaLogistico: string;
 
-  @ValidateIf(ifDefined)
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   direccion?: string;
 
-  @ValidateIf(ifDefined)
+  @IsOptional()
   @IsNumber()
   @Min(-90)
   @Max(90)
   latitud?: number;
 
-  @ValidateIf(ifDefined)
+  @IsOptional()
   @IsNumber()
   @Min(-180)
   @Max(180)
   longitud?: number;
 
-  @ValidateIf(ifDefined)
+  @IsOptional()
   @IsArray()
   @IsInt({ each: true })
   @IsPositive({ each: true })
   zonasIds?: number[];
 }
 
-export class UpdateCentroDto {
-  @ValidateIf(ifDefined)
+export class UpdateCentroHttpDto {
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   nombre?: string;
 
-  @ValidateIf(ifDefined)
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   programaLogistico?: string;
 
-  @ValidateIf(ifDefined)
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   direccion?: string;
 
-  @ValidateIf(ifDefined)
+  @IsOptional()
   @IsNumber()
   @Min(-90)
   @Max(90)
   latitud?: number;
 
-  @ValidateIf(ifDefined)
+  @IsOptional()
   @IsNumber()
   @Min(-180)
   @Max(180)
   longitud?: number;
 
-  @ValidateIf(ifDefined)
+  @IsOptional()
   @IsArray()
   @IsInt({ each: true })
   @IsPositive({ each: true })

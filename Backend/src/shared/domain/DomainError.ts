@@ -22,3 +22,11 @@ export class ReglaDeNegocioViolada extends DomainError {
 export class Conflicto extends DomainError {
   readonly codigo = 'CONFLICTO';
 }
+
+export class AccesoDenegado extends DomainError {
+  readonly codigo = 'ACCESO_DENEGADO';
+}
+
+export class EntidadNoProcesable extends DomainError {
+  readonly codigo = 'NO_PROCESABLE';
+}
