@@ -41,10 +41,16 @@ export class ApiError extends Error {
  * @returns A message suitable for displaying to the user.
  */
 function getErrorMessage(body: unknown, status: number): string {
-  if (body && typeof body === 'object' && 'message' in body) {
-    const message = (body as { message?: unknown }).message;
-    if (Array.isArray(message)) return message.join(', ');
-    if (typeof message === 'string') return message;
+  if (body && typeof body === 'object') {
+    if ('message' in body) {
+      const message = (body as { message?: unknown }).message;
+      if (Array.isArray(message)) return message.join(', ');
+      if (typeof message === 'string') return message;
+    }
+    if ('mensaje' in body) {
+      const mensaje = (body as { mensaje?: unknown }).mensaje;
+      if (typeof mensaje === 'string') return mensaje;
+    }
   }
   return `Error ${status}`;
 }
