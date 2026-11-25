@@ -24,6 +24,7 @@ const TEXTO_ESTADO: Record<number, string> = {
   [HttpStatus.FORBIDDEN]: 'Forbidden',
   [HttpStatus.NOT_FOUND]: 'Not Found',
   [HttpStatus.CONFLICT]: 'Conflict',
+  [HttpStatus.UNPROCESSABLE_ENTITY]: 'Unprocessable Entity', // ← nueva
   [HttpStatus.INTERNAL_SERVER_ERROR]: 'Internal Server Error',
 };
 
