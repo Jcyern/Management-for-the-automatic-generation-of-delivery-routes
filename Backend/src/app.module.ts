@@ -8,11 +8,11 @@ import { Neo4jModule } from './neo4j/neo4j.module.js';
 import { GrafoModule } from './grafo/grafo.module.js';
 import { PrismaModule } from './prismaModule/prisma.module.js';
 import { AuthModule } from './Auth/Auth.module.js';
-import { CentroHexModule } from './features/centro/centro.module.js';
 import { PedidoHexModule } from './features/pedido/pedido.module.js';
+import { CentroHexModule } from './features/centro/centro.module.js';
 import { ZonaHexModule } from './features/zona/zona.module.js';
 import { CoordinadorHexModule } from './features/coordinador/coordinador.module.js';
-import { FlotaModule } from './Flota/Flota.module.js';
+import { FlotaHexModule } from './features/flota/flota.module.js';
 import { VehiculoModule } from './Vehiculo/Vehiculo.module.js';
 import { RepartidorModule } from './Repartidor/Repartidor.module.js';
 import { RutaModule } from './Ruta/Ruta.module.js';
@@ -32,7 +32,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
     Neo4jModule, GrafoModule, RedisModule, TiempoRealModule,
     PrismaModule, AuthModule, PedidoHexModule, CentroHexModule,
-    ZonaHexModule, CoordinadorHexModule, FlotaModule, VehiculoModule,
+    ZonaHexModule, CoordinadorHexModule, FlotaHexModule, VehiculoModule,
     RepartidorModule, RutaModule,
   ],
   controllers: [AppController],

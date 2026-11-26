@@ -1,12 +1,12 @@
 import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
-export class CreateFlotaDto {
+export class CreateFlotaHttpDto {
   @IsString()
   @IsNotEmpty()
-  nombre: string;
+  nombre!: string;
 }
 
-export class UpdateFlotaDto {
+export class UpdateFlotaHttpDto {
   @IsString()
   @IsOptional()
   nombre?: string;
