@@ -8,8 +8,8 @@ import { Neo4jModule } from './neo4j/neo4j.module.js';
 import { GrafoModule } from './grafo/grafo.module.js';
 import { PrismaModule } from './prismaModule/prisma.module.js';
 import { AuthModule } from './Auth/Auth.module.js';
-import { OrderModule } from './Order/Order.module.js';
 import { CentroHexModule } from './features/centro/centro.module.js';
+import { PedidoHexModule } from './features/pedido/pedido.module.js';
 import { ZonaHexModule } from './features/zona/zona.module.js';
 import { CoordinadorHexModule } from './features/coordinador/coordinador.module.js';
 import { FlotaModule } from './Flota/Flota.module.js';
@@ -31,7 +31,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       serviceId: 'management-for-the-automatic-generation-of-delivery-routes',
     }),
     Neo4jModule, GrafoModule, RedisModule, TiempoRealModule,
-    PrismaModule, AuthModule, OrderModule, CentroHexModule,
+    PrismaModule, AuthModule, PedidoHexModule, CentroHexModule,
     ZonaHexModule, CoordinadorHexModule, FlotaModule, VehiculoModule,
     RepartidorModule, RutaModule,
   ],
