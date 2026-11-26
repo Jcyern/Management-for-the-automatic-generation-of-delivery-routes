@@ -5,10 +5,13 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import {
+  AccesoDenegado,
   Conflicto,
   DomainError,
+  EntidadNoProcesable,
   RecursoNoEncontrado,
   ReglaDeNegocioViolada,
+  UbicacionNoResuelta,
 } from '../../../domain/DomainError.js';
 
 interface HttpRequestLike {
@@ -19,6 +22,15 @@ interface HttpResponseLike {
   status(code: number): { json(body: unknown): void };
 }
 
+const TEXTO_ESTADO: Record<number, string> = {
+  [HttpStatus.BAD_REQUEST]: 'Bad Request',
+  [HttpStatus.FORBIDDEN]: 'Forbidden',
+  [HttpStatus.NOT_FOUND]: 'Not Found',
+  [HttpStatus.CONFLICT]: 'Conflict',
+  [HttpStatus.UNPROCESSABLE_ENTITY]: 'Unprocessable Entity',
+  [HttpStatus.INTERNAL_SERVER_ERROR]: 'Internal Server Error',
+};
+
 @Catch(DomainError)
 export class DomainExceptionFilter implements ExceptionFilter {
   catch(exception: DomainError, host: ArgumentsHost): void {
@@ -27,11 +39,16 @@ export class DomainExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<HttpRequestLike>();
 
     const status = this.obtenerEstado(exception);
+    const mensaje = exception.message;
 
     response.status(status).json({
       statusCode: status,
+      // Compatibilidad con el formato histórico de Nest y con apiClient/React.
+      message: mensaje,
+      error: TEXTO_ESTADO[status] ?? 'Error',
+      // Contrato nuevo del dominio.
       codigo: exception.codigo,
-      mensaje: exception.message,
+      mensaje,
       timestamp: new Date().toISOString(),
       path: request.url,
     });
@@ -46,6 +63,12 @@ export class DomainExceptionFilter implements ExceptionFilter {
     }
     if (exception instanceof Conflicto) {
       return HttpStatus.CONFLICT;
+    }
+    if (exception instanceof AccesoDenegado) {
+      return HttpStatus.FORBIDDEN;
+    }
+    if (exception instanceof EntidadNoProcesable) {
+      return HttpStatus.UNPROCESSABLE_ENTITY;
     }
     return HttpStatus.INTERNAL_SERVER_ERROR;
   }
