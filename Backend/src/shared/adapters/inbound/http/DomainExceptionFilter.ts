@@ -5,8 +5,10 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import {
+  AccesoDenegado,
   Conflicto,
   DomainError,
+  EntidadNoProcesable,
   RecursoNoEncontrado,
   ReglaDeNegocioViolada,
   UbicacionNoResuelta,
@@ -62,7 +64,10 @@ export class DomainExceptionFilter implements ExceptionFilter {
     if (exception instanceof Conflicto) {
       return HttpStatus.CONFLICT;
     }
-    if (exception instanceof UbicacionNoResuelta) {
+    if (exception instanceof AccesoDenegado) {
+      return HttpStatus.FORBIDDEN;
+    }
+    if (exception instanceof EntidadNoProcesable) {
       return HttpStatus.UNPROCESSABLE_ENTITY;
     }
     return HttpStatus.INTERNAL_SERVER_ERROR;
