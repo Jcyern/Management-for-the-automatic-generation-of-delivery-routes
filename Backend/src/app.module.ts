@@ -12,9 +12,8 @@ import { OrderModule } from './Order/Order.module.js';
 import { CentroModule } from './Centro/Centro.module.js';
 import { ZonaHexModule } from './features/zona/zona.module.js';
 import { FlotaHexModule } from './features/flota/flota.module.js';
-//import { FlotaModule } from './Flota/Flota.module.js';
 import { VehiculoModule } from './Vehiculo/Vehiculo.module.js';
-import { RepartidorModule } from './Repartidor/Repartidor.module.js';
+import { RepartidorHexModule } from './features/repartidor/repartidor.module.js';
 import { RutaModule } from './Ruta/Ruta.module.js';
 import { RedisModule } from './redis/redis.module.js';
 import { TiempoRealModule } from './tiempo-real/tiempo-real.module.js';
@@ -33,7 +32,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     Neo4jModule, GrafoModule, RedisModule, TiempoRealModule,
     PrismaModule, AuthModule, OrderModule, CentroModule,
     ZonaHexModule, FlotaHexModule, VehiculoModule,
-    RepartidorModule, RutaModule,
+    RepartidorHexModule, RutaModule,
   ],
   controllers: [AppController],
   providers: [
