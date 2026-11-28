@@ -16,10 +16,13 @@ import { ListarCentrosUseCase } from '../../../application/use-cases/ListarCentr
 import { ObtenerCentroUseCase } from '../../../application/use-cases/ObtenerCentroUseCase.js';
 import { ActualizarCentroUseCase } from '../../../application/use-cases/ActualizarCentroUseCase.js';
 import { EliminarCentroUseCase } from '../../../application/use-cases/EliminarCentroUseCase.js';
+import { AsignarCentroPorCorreoUseCase } from '../../../application/use-cases/AsignarCentroPorCorreoUseCase.js';
+import { DesasignarCentroPorCorreoUseCase } from '../../../application/use-cases/DesasignarCentroPorCorreoUseCase.js';
 import {
   CreateCentroHttpDto,
   UpdateCentroHttpDto,
 } from './dto/Centro.http.dto.js';
+import { AsignarPorCorreoHttpDto } from './dto/AsignarPorCorreo.http.dto.js';
 
 interface PeticionAutenticada {
   user: { userId: number; rol: RolEfectivo };
@@ -33,6 +36,8 @@ export class CentroController {
     private readonly obtener: ObtenerCentroUseCase,
     private readonly actualizar: ActualizarCentroUseCase,
     private readonly eliminar: EliminarCentroUseCase,
+    private readonly asignarPorCorreoUC: AsignarCentroPorCorreoUseCase,
+    private readonly desasignarPorCorreoUC: DesasignarCentroPorCorreoUseCase,
   ) {}
 
   @Post()
@@ -118,6 +123,25 @@ export class CentroController {
       ...(dto.longitud !== undefined ? { longitud: dto.longitud } : {}),
       ...(dto.zonasIds !== undefined ? { zonasIds: dto.zonasIds } : {}),
     });
+  }
+
+  @Get(':id/asignaciones')
+  @Roles(RolEfectivo.ADMINISTRADOR)
+  async obtenerAsignaciones(@Param('id', ParseIntPipe) id: number) {
+    await this.obtener.execute(id, 0, true);
+    return this.obtener.obtenerAsignaciones(id);
+  }
+
+  @Post('asignar')
+  @Roles(RolEfectivo.ADMINISTRADOR)
+  asignarPorCorreo(@Body() dto: AsignarPorCorreoHttpDto) {
+    return this.asignarPorCorreoUC.execute(dto);
+  }
+
+  @Delete('asignar')
+  @Roles(RolEfectivo.ADMINISTRADOR)
+  desasignarPorCorreo(@Body() dto: AsignarPorCorreoHttpDto) {
+    return this.desasignarPorCorreoUC.execute(dto);
   }
 
   @Delete(':id')

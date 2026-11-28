@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import type { Centro } from '../types/centro';
 import './CentrosTable.css';
 
@@ -14,6 +14,9 @@ interface CentrosTableProps {
 
   /** Callback fired when the user wants to delete a center. */
   onDelete: (centro: Centro) => void;
+
+  /** Callback fired when the user wants to assign coordinators/deliverers. */
+  onAsignar: (centro: Centro) => void;
 }
 
 /**
@@ -41,6 +44,7 @@ export function CentrosTable({
   canManage,
   onEdit,
   onDelete,
+  onAsignar,
 }: CentrosTableProps) {
   if (centros.length === 0) {
     return (
@@ -58,6 +62,7 @@ export function CentrosTable({
             <th>Programa</th>
             <th>Ubicación</th>
             <th>Zonas</th>
+            {canManage && <th>Asignar</th>}
             {canManage && <th>Acciones</th>}
           </tr>
         </thead>
@@ -97,6 +102,18 @@ export function CentrosTable({
                     </div>
                   )}
                 </td>
+                {canManage && (
+                  <td>
+                    <button
+                      type="button"
+                      className="centros-icon-button"
+                      aria-label={`Asignar ${centro.nombre}`}
+                      onClick={() => onAsignar(centro)}
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </td>
+                )}
                 {canManage && (
                   <td>
                     <div className="cell-actions">

@@ -41,6 +41,10 @@ function crearDependencias() {
     estaAutorizado,
     tieneDependencias: vi.fn(),
     eliminar: vi.fn(),
+    buscarPorNombre: vi.fn(),
+    obtenerAsignaciones: vi.fn(),
+    asignarPorCorreo: vi.fn(),
+    desasignarPorCorreo: vi.fn(),
   };
 
   return {

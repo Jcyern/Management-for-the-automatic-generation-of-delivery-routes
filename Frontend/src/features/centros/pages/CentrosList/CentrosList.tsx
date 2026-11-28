@@ -7,6 +7,7 @@ import { Modal } from '../../../../components/common/Modal';
 import { ApiError } from '../../../../lib/apiClient';
 import { CentrosTable } from '../../components/CentrosTable';
 import { CentroForm } from '../../components/CentroForm';
+import { AsignarCentroModal } from '../../components/AsignarCentroModal';
 import type { Centro, CentroInput } from '../../types/centro';
 import './CentrosList.css';
 
@@ -25,6 +26,10 @@ export function CentrosList() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  /* Asignación de coordinadores y repartidores */
+  const [asignandoModalOpen, setAsignandoModalOpen] = useState(false);
+  const [asignandoCentro, setAsignandoCentro] = useState<Centro | null>(null);
+
   const openCreate = () => {
     setEditing(null);
     setActionError(null);
@@ -37,11 +42,22 @@ export function CentrosList() {
     setIsModalOpen(true);
   };
 
+  const openAsignar = (centro: Centro) => {
+    setAsignandoCentro(centro);
+    setAsignandoModalOpen(true);
+  };
+
   const closeModal = () => {
     if (isSubmitting) return;
     setIsModalOpen(false);
     setEditing(null);
     setActionError(null);
+  };
+
+  const closeAsignarModal = () => {
+    setAsignandoModalOpen(false);
+    setAsignandoCentro(null);
+    refresh();
   };
 
   const handleSubmit = async (data: CentroInput) => {
@@ -136,6 +152,7 @@ export function CentrosList() {
           canManage={canManageCentros}
           onEdit={openEdit}
           onDelete={handleDelete}
+          onAsignar={openAsignar}
         />
       )}
 
@@ -152,6 +169,14 @@ export function CentrosList() {
           isSubmitting={isSubmitting}
         />
       </Modal>
+
+      {asignandoModalOpen && asignandoCentro && (
+        <AsignarCentroModal
+          centro={asignandoCentro}
+          isOpen={asignandoModalOpen}
+          onClose={closeAsignarModal}
+        />
+      )}
     </div>
   );
 }

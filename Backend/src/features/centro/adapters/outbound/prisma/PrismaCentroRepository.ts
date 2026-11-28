@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../../generated/prisma/client.js';
 import { PrismaService } from '../../../../../prismaModule/prisma.service.js';
-import { ReglaDeNegocioViolada } from '../../../../../shared/domain/DomainError.js';
+import { ReglaDeNegocioViolada, RecursoNoEncontrado } from '../../../../../shared/domain/DomainError.js';
 import { Centro } from '../../../domain/Centro.js';
-import type { CentroRepositoryPort } from '../../../application/ports/CentroRepositoryPort.js';
+import type {
+  AsignacionPorCorreoResultado,
+  AsignacionResumen,
+  AsignacionesCentro,
+  CentroRepositoryPort,
+  TipoAsignacionCentro,
+} from '../../../application/ports/CentroRepositoryPort.js';
 import type { CentroQueryPort } from '../../../application/ports/CentroQueryPort.js';
 import type { CentroConZonas } from '../../../application/models/CentroConZonas.js';
 
@@ -38,6 +44,13 @@ function aReadModel(row: CentroConZonasNombresRow): CentroConZonas {
 }
 
 function esZonaInexistente(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2025'
+  );
+}
+
+function esRelacionInexistente(error: unknown): boolean {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === 'P2025'
@@ -117,6 +130,14 @@ export class PrismaCentroRepository
     return row ? aCentro(row) : null;
   }
 
+  async buscarPorNombre(nombre: string): Promise<Centro | null> {
+    const row = await this.prisma.centroDeDistribucion.findFirst({
+      where: { nombre },
+      include: { zonas: { select: { id: true } } },
+    });
+    return row ? aCentro(row) : null;
+  }
+
   async existeNombre(nombre: string, excluirId?: number): Promise<boolean> {
     const row = await this.prisma.centroDeDistribucion.findFirst({
       where: {
@@ -156,6 +177,166 @@ export class PrismaCentroRepository
 
   async eliminar(id: number): Promise<void> {
     await this.prisma.centroDeDistribucion.delete({ where: { id } });
+  }
+
+  async asignarPorCorreo(
+    idCentro: number,
+    correo: string,
+    tipo: TipoAsignacionCentro,
+  ): Promise<AsignacionPorCorreoResultado> {
+    const usuario = await this.prisma.usuario.findFirst({
+      where: { correo: { equals: correo.trim(), mode: 'insensitive' } },
+      select: {
+        id: true,
+        nombre: true,
+        correo: true,
+        coordinador: { select: { idUser: true } },
+        repartidor: { select: { idUser: true } },
+      },
+    });
+
+    if (!usuario) {
+      throw new RecursoNoEncontrado('Usuario con correo', correo);
+    }
+
+    if (tipo === 'repartidor') {
+      if (!usuario.repartidor) {
+        throw new ReglaDeNegocioViolada(
+          'El usuario indicado no es repartidor.',
+        );
+      }
+      await this.prisma.centroDeDistribucion.update({
+        where: { id: idCentro },
+        data: { repartidores: { connect: { idUser: usuario.id } } },
+      });
+    } else {
+      if (!usuario.coordinador) {
+        throw new ReglaDeNegocioViolada(
+          'El usuario indicado no es coordinador logístico.',
+        );
+      }
+      const data =
+        tipo === 'crear'
+          ? { coordinadorCrearRutas: { connect: { idUser: usuario.id } } }
+          : { coordinadorValidadRutas: { connect: { idUser: usuario.id } } };
+      await this.prisma.centroDeDistribucion.update({
+        where: { id: idCentro },
+        data,
+      });
+    }
+
+    return {
+      idUser: usuario.id,
+      nombre: usuario.nombre,
+      correo: usuario.correo,
+      tipo,
+    };
+  }
+
+  async desasignarPorCorreo(
+    idCentro: number,
+    correo: string,
+    tipo: TipoAsignacionCentro,
+  ): Promise<AsignacionPorCorreoResultado> {
+    const usuario = await this.prisma.usuario.findFirst({
+      where: { correo: { equals: correo.trim(), mode: 'insensitive' } },
+      select: { id: true, nombre: true, correo: true },
+    });
+
+    if (!usuario) {
+      throw new RecursoNoEncontrado('Usuario con correo', correo);
+    }
+
+    const data =
+      tipo === 'repartidor'
+        ? { repartidores: { disconnect: { idUser: usuario.id } } }
+        : tipo === 'crear'
+          ? {
+              coordinadorCrearRutas: {
+                disconnect: { idUser: usuario.id },
+              },
+            }
+          : {
+              coordinadorValidadRutas: {
+                disconnect: { idUser: usuario.id },
+              },
+            };
+
+    try {
+      await this.prisma.centroDeDistribucion.update({
+        where: { id: idCentro },
+        data,
+      });
+    } catch (error) {
+      if (esRelacionInexistente(error)) {
+        throw new ReglaDeNegocioViolada(
+          'El usuario no está asignado a ese centro con ese tipo.',
+        );
+      }
+      throw error;
+    }
+
+    return {
+      idUser: usuario.id,
+      nombre: usuario.nombre,
+      correo: usuario.correo,
+      tipo,
+    };
+  }
+
+  async obtenerAsignaciones(id: number): Promise<AsignacionesCentro> {
+    const row = await this.prisma.centroDeDistribucion.findUnique({
+      where: { id },
+      select: {
+        coordinadorCrearRutas: {
+          select: {
+            idUser: true,
+            nombre: true,
+            user: { select: { correo: true } },
+          },
+        },
+        coordinadorValidadRutas: {
+          select: {
+            idUser: true,
+            nombre: true,
+            user: { select: { correo: true } },
+          },
+        },
+        repartidores: {
+          select: {
+            idUser: true,
+            nombre: true,
+            user: { select: { correo: true } },
+          },
+        },
+      },
+    });
+    if (!row) {
+      return {
+        coordinadoresCrear: [],
+        coordinadoresValidar: [],
+        repartidores: [],
+      };
+    }
+
+    const map = (
+      list: Array<{
+        idUser: number;
+        nombre: string;
+        user: { correo: string };
+      }>,
+    ): AsignacionResumen[] =>
+      list.map(({ idUser, nombre, user }) => ({
+        idUser,
+        nombre,
+        correo: user.correo,
+      }));
+
+    return {
+      coordinadoresCrear: map(row.coordinadorCrearRutas),
+      coordinadoresValidar: map(row.coordinadorValidadRutas),
+      repartidores: map(row.repartidores),
+    };
   }
 
   async buscarPorIdConZonas(id: number): Promise<CentroConZonas | null> {

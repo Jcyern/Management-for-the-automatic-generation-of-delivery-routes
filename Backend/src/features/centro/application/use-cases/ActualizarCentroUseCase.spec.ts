@@ -50,6 +50,10 @@ function crearDependencias({
     estaAutorizado: vi.fn(),
     tieneDependencias: vi.fn(),
     eliminar: vi.fn(),
+    buscarPorNombre: vi.fn(),
+    obtenerAsignaciones: vi.fn(),
+    asignarPorCorreo: vi.fn(),
+    desasignarPorCorreo: vi.fn(),
   };
   const query: CentroQueryPort = {
     buscarPorIdConZonas,

@@ -34,4 +34,8 @@ export class ObtenerCentroUseCase {
 
     return aCentroOutput(vista);
   }
+
+  async obtenerAsignaciones(id: number) {
+    return this.repo.obtenerAsignaciones(id);
+  }
 }

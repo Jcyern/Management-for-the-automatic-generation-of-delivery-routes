@@ -37,6 +37,10 @@ function crearDependencias() {
     estaAutorizado: vi.fn(),
     tieneDependencias,
     eliminar,
+    buscarPorNombre: vi.fn(),
+    obtenerAsignaciones: vi.fn(),
+    asignarPorCorreo: vi.fn(),
+    desasignarPorCorreo: vi.fn(),
   };
   const query: CentroQueryPort = {
     buscarPorIdConZonas,
