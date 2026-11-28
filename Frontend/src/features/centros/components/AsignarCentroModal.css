@@ -1,0 +1,107 @@
+.asignar-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.2fr 1.2fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.asignar-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.asignar-input,
+.asignar-select {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+  font-size: 0.95rem;
+}
+
+.asignar-input:focus,
+.asignar-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.asignar-titulo {
+  display: block;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  color: #374151;
+}
+
+.asignar-vacio {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.asignar-hint {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.asignar-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.asignar-tabla th,
+.asignar-tabla td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.asignar-tabla th {
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.asignar-quitar {
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.asignar-quitar:hover {
+  text-decoration: underline;
+}
+
+.form-error {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.form-ok {
+  color: #15803d;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.asignar-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 720px) {
+  .asignar-grid {
+    grid-template-columns: 1fr;
+  }
+}

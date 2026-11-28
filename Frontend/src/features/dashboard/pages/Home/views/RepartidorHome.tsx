@@ -1,4 +1,4 @@
-import { Route, RefreshCw, BarChart3 } from 'lucide-react';
+import { Route, RefreshCw, BarChart3, Building2 } from 'lucide-react';
 import { StatCard } from '../../../components/StatCard';
 import { QuickAction } from '../../../components/QuickAction';
 import { SectionHeader } from '../../../components/SectionHeader';
@@ -48,6 +48,12 @@ export function RepartidorHome() {
           description="Ver detalle y actualizar estado"
           to="/dashboard/rutas"
           icon={<Route size={20} />}
+        />
+        <QuickAction
+          label="Mis centros"
+          description="Consultar tus centros de distribución asignados"
+          to="/dashboard/centros"
+          icon={<Building2 size={20} />}
         />
         <QuickAction
           label="Solicitar reprogramación"

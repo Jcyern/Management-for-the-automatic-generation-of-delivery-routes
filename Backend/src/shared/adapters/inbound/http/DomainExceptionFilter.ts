@@ -70,6 +70,9 @@ export class DomainExceptionFilter implements ExceptionFilter {
     if (exception instanceof EntidadNoProcesable) {
       return HttpStatus.UNPROCESSABLE_ENTITY;
     }
+    if (exception instanceof UbicacionNoResuelta) {
+      return HttpStatus.UNPROCESSABLE_ENTITY;
+    }
     return HttpStatus.INTERNAL_SERVER_ERROR;
   }
 }

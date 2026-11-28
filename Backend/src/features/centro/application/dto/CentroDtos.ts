@@ -1,4 +1,5 @@
 import type { CentroZonaResumen } from '../models/CentroConZonas.js';
+import type { TipoAsignacionCentro } from '../ports/CentroRepositoryPort.js';
 
 /** Entrada del caso de uso CrearCentro. */
 export interface CrearCentroInput {
@@ -29,4 +30,12 @@ export interface CentroOutput {
   latitud: number | null;
   longitud: number | null;
   zonas: CentroZonaResumen[];
+}
+
+/** Entrada de los casos de uso Asignar/DesasignarCentroPorCorreo. */
+export interface AsignarCentroPorCorreoInput {
+  correo: string;
+  tipo: TipoAsignacionCentro;
+  centroId?: number;
+  centroNombre?: string;
 }

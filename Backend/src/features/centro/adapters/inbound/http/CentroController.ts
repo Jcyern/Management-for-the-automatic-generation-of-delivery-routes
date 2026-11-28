@@ -16,20 +16,17 @@ import { ListarCentrosUseCase } from '../../../application/use-cases/ListarCentr
 import { ObtenerCentroUseCase } from '../../../application/use-cases/ObtenerCentroUseCase.js';
 import { ActualizarCentroUseCase } from '../../../application/use-cases/ActualizarCentroUseCase.js';
 import { EliminarCentroUseCase } from '../../../application/use-cases/EliminarCentroUseCase.js';
+import { AsignarCentroPorCorreoUseCase } from '../../../application/use-cases/AsignarCentroPorCorreoUseCase.js';
+import { DesasignarCentroPorCorreoUseCase } from '../../../application/use-cases/DesasignarCentroPorCorreoUseCase.js';
 import {
   CreateCentroHttpDto,
   UpdateCentroHttpDto,
 } from './dto/Centro.http.dto.js';
+import { AsignarPorCorreoHttpDto } from './dto/AsignarPorCorreo.http.dto.js';
 
 interface PeticionAutenticada {
   user: { userId: number; rol: RolEfectivo };
 }
-
-const ROLES_ESCRITURA = [
-  RolEfectivo.LOGISTICO,
-  RolEfectivo.SUPERVISOR,
-  RolEfectivo.ADMINISTRADOR,
-] as const;
 
 @Controller('centro')
 export class CentroController {
@@ -39,10 +36,12 @@ export class CentroController {
     private readonly obtener: ObtenerCentroUseCase,
     private readonly actualizar: ActualizarCentroUseCase,
     private readonly eliminar: EliminarCentroUseCase,
+    private readonly asignarPorCorreoUC: AsignarCentroPorCorreoUseCase,
+    private readonly desasignarPorCorreoUC: DesasignarCentroPorCorreoUseCase,
   ) {}
 
   @Post()
-  @Roles(...ROLES_ESCRITURA)
+  @Roles(RolEfectivo.ADMINISTRADOR)
   create(@Body() dto: CreateCentroHttpDto, @Req() req: PeticionAutenticada) {
     return this.crear.execute(
       {
@@ -58,6 +57,12 @@ export class CentroController {
   }
 
   @Get()
+  @Roles(
+    RolEfectivo.ADMINISTRADOR,
+    RolEfectivo.SUPERVISOR,
+    RolEfectivo.LOGISTICO,
+    RolEfectivo.REPARTIDOR,
+  )
   findAll(@Req() req: PeticionAutenticada) {
     return this.listar.execute(
       req.user.userId,
@@ -66,45 +71,82 @@ export class CentroController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.obtener.execute(id);
+  @Roles(
+    RolEfectivo.ADMINISTRADOR,
+    RolEfectivo.SUPERVISOR,
+    RolEfectivo.LOGISTICO,
+    RolEfectivo.REPARTIDOR,
+  )
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: PeticionAutenticada,
+  ) {
+    return this.obtener.execute(
+      id,
+      req.user.userId,
+      req.user.rol === RolEfectivo.ADMINISTRADOR,
+    );
   }
 
   @Get(':id/zonas')
-  async getZonas(@Param('id', ParseIntPipe) id: number) {
-    const centro = await this.obtener.execute(id);
+  @Roles(
+    RolEfectivo.ADMINISTRADOR,
+    RolEfectivo.SUPERVISOR,
+    RolEfectivo.LOGISTICO,
+    RolEfectivo.REPARTIDOR,
+  )
+  async getZonas(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: PeticionAutenticada,
+  ) {
+    const centro = await this.obtener.execute(
+      id,
+      req.user.userId,
+      req.user.rol === RolEfectivo.ADMINISTRADOR,
+    );
     return centro.zonas;
   }
 
   @Put(':id')
-  @Roles(...ROLES_ESCRITURA)
+  @Roles(RolEfectivo.ADMINISTRADOR)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCentroHttpDto,
-    @Req() req: PeticionAutenticada,
   ) {
-    return this.actualizar.execute(
-      id,
-      {
-        ...(dto.nombre !== undefined ? { nombre: dto.nombre } : {}),
-        ...(dto.programaLogistico !== undefined
-          ? { programaLogistico: dto.programaLogistico }
-          : {}),
-        ...(dto.direccion !== undefined ? { direccion: dto.direccion } : {}),
-        ...(dto.latitud !== undefined ? { latitud: dto.latitud } : {}),
-        ...(dto.longitud !== undefined ? { longitud: dto.longitud } : {}),
-        ...(dto.zonasIds !== undefined ? { zonasIds: dto.zonasIds } : {}),
-      },
-      req.user.userId,
-    );
+    return this.actualizar.execute(id, {
+      ...(dto.nombre !== undefined ? { nombre: dto.nombre } : {}),
+      ...(dto.programaLogistico !== undefined
+        ? { programaLogistico: dto.programaLogistico }
+        : {}),
+      ...(dto.direccion !== undefined ? { direccion: dto.direccion } : {}),
+      ...(dto.latitud !== undefined ? { latitud: dto.latitud } : {}),
+      ...(dto.longitud !== undefined ? { longitud: dto.longitud } : {}),
+      ...(dto.zonasIds !== undefined ? { zonasIds: dto.zonasIds } : {}),
+    });
+  }
+
+  @Get(':id/asignaciones')
+  @Roles(RolEfectivo.ADMINISTRADOR)
+  async obtenerAsignaciones(@Param('id', ParseIntPipe) id: number) {
+    await this.obtener.execute(id, 0, true);
+    return this.obtener.obtenerAsignaciones(id);
+  }
+
+  @Post('asignar')
+  @Roles(RolEfectivo.ADMINISTRADOR)
+  asignarPorCorreo(@Body() dto: AsignarPorCorreoHttpDto) {
+    return this.asignarPorCorreoUC.execute(dto);
+  }
+
+  @Delete('asignar')
+  @Roles(RolEfectivo.ADMINISTRADOR)
+  desasignarPorCorreo(@Body() dto: AsignarPorCorreoHttpDto) {
+    return this.desasignarPorCorreoUC.execute(dto);
   }
 
   @Delete(':id')
-  @Roles(...ROLES_ESCRITURA)
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: PeticionAutenticada,
-  ) {
-    return this.eliminar.execute(id, req.user.userId);
+  @Roles(RolEfectivo.ADMINISTRADOR)
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.eliminar.execute(id);
   }
 }

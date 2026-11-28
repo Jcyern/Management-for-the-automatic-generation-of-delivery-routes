@@ -1,5 +1,4 @@
 import {
-  AccesoDenegado,
   Conflicto,
   RecursoNoEncontrado,
 } from '../../../../shared/domain/DomainError.js';
@@ -28,17 +27,10 @@ export class ActualizarCentroUseCase {
   async execute(
     id: number,
     input: ActualizarCentroInput,
-    userId: number,
   ): Promise<CentroOutput> {
     const actual = await this.repo.buscarPorId(id);
     if (!actual) {
       throw new RecursoNoEncontrado('Centro', id);
-    }
-
-    if (!(await this.repo.estaAutorizado(id, userId))) {
-      throw new AccesoDenegado(
-        'No estás autorizado para gestionar este centro de distribución.',
-      );
     }
 
     let nombre: string | undefined;

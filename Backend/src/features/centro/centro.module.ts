@@ -19,6 +19,8 @@ import { ListarCentrosUseCase } from './application/use-cases/ListarCentrosUseCa
 import { ObtenerCentroUseCase } from './application/use-cases/ObtenerCentroUseCase.js';
 import { ActualizarCentroUseCase } from './application/use-cases/ActualizarCentroUseCase.js';
 import { EliminarCentroUseCase } from './application/use-cases/EliminarCentroUseCase.js';
+import { AsignarCentroPorCorreoUseCase } from './application/use-cases/AsignarCentroPorCorreoUseCase.js';
+import { DesasignarCentroPorCorreoUseCase } from './application/use-cases/DesasignarCentroPorCorreoUseCase.js';
 
 @Module({
   imports: [PrismaModule, GeoModule],
@@ -45,8 +47,11 @@ import { EliminarCentroUseCase } from './application/use-cases/EliminarCentroUse
     },
     {
       provide: ObtenerCentroUseCase,
-      useFactory: (query: CentroQueryPort) => new ObtenerCentroUseCase(query),
-      inject: [CENTRO_QUERY],
+      useFactory: (
+        query: CentroQueryPort,
+        repo: CentroRepositoryPort,
+      ) => new ObtenerCentroUseCase(query, repo),
+      inject: [CENTRO_QUERY, CENTRO_REPOSITORY],
     },
     {
       provide: ActualizarCentroUseCase,
@@ -62,6 +67,18 @@ import { EliminarCentroUseCase } from './application/use-cases/EliminarCentroUse
       useFactory: (repo: CentroRepositoryPort, query: CentroQueryPort) =>
         new EliminarCentroUseCase(repo, query),
       inject: [CENTRO_REPOSITORY, CENTRO_QUERY],
+    },
+    {
+      provide: AsignarCentroPorCorreoUseCase,
+      useFactory: (repo: CentroRepositoryPort) =>
+        new AsignarCentroPorCorreoUseCase(repo),
+      inject: [CENTRO_REPOSITORY],
+    },
+    {
+      provide: DesasignarCentroPorCorreoUseCase,
+      useFactory: (repo: CentroRepositoryPort) =>
+        new DesasignarCentroPorCorreoUseCase(repo),
+      inject: [CENTRO_REPOSITORY],
     },
   ],
 })
