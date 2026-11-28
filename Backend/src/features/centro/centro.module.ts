@@ -45,8 +45,11 @@ import { EliminarCentroUseCase } from './application/use-cases/EliminarCentroUse
     },
     {
       provide: ObtenerCentroUseCase,
-      useFactory: (query: CentroQueryPort) => new ObtenerCentroUseCase(query),
-      inject: [CENTRO_QUERY],
+      useFactory: (
+        query: CentroQueryPort,
+        repo: CentroRepositoryPort,
+      ) => new ObtenerCentroUseCase(query, repo),
+      inject: [CENTRO_QUERY, CENTRO_REPOSITORY],
     },
     {
       provide: ActualizarCentroUseCase,

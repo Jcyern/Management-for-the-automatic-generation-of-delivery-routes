@@ -63,7 +63,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Centros',
     path: '/dashboard/centros',
     icon: 'Building2',
-    allowedRoles: ['admin', 'supervisor'],
+    allowedRoles: ['admin', 'supervisor', 'logistico'],
   },
   {
     label: 'Usuarios',

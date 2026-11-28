@@ -30,6 +30,7 @@ export class AccesoDenegado extends DomainError {
 export class EntidadNoProcesable extends DomainError {
   readonly codigo = 'NO_PROCESABLE';
 }
+
 /** La dirección no pudo resolverse y el modo estricto está activo. */
 export class UbicacionNoResuelta extends DomainError {
   readonly codigo = 'UBICACION_NO_RESUELTA';

@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
-  AccesoDenegado,
   RecursoNoEncontrado,
   ReglaDeNegocioViolada,
 } from '../../../../shared/domain/DomainError.js';
@@ -27,7 +26,6 @@ function vistaCentro(): CentroConZonas {
 
 function crearDependencias() {
   const buscarPorIdConZonas = vi.fn();
-  const estaAutorizado = vi.fn();
   const tieneDependencias = vi.fn();
   const eliminar = vi.fn();
 
@@ -36,7 +34,7 @@ function crearDependencias() {
     actualizar: vi.fn(),
     buscarPorId: vi.fn(),
     existeNombre: vi.fn(),
-    estaAutorizado,
+    estaAutorizado: vi.fn(),
     tieneDependencias,
     eliminar,
   };
@@ -49,7 +47,6 @@ function crearDependencias() {
   return {
     caso: new EliminarCentroUseCase(repo, query),
     buscarPorIdConZonas,
-    estaAutorizado,
     tieneDependencias,
     eliminar,
   };
@@ -60,29 +57,17 @@ describe('EliminarCentroUseCase', () => {
     const d = crearDependencias();
     d.buscarPorIdConZonas.mockResolvedValue(null);
 
-    await expect(d.caso.execute(1, 5)).rejects.toBeInstanceOf(
+    await expect(d.caso.execute(1)).rejects.toBeInstanceOf(
       RecursoNoEncontrado,
     );
-    expect(d.estaAutorizado).not.toHaveBeenCalled();
-  });
-
-  it('lanza 403 si el usuario no está autorizado', async () => {
-    const d = crearDependencias();
-    d.buscarPorIdConZonas.mockResolvedValue(vistaCentro());
-    d.estaAutorizado.mockResolvedValue(false);
-
-    await expect(d.caso.execute(1, 5)).rejects.toBeInstanceOf(AccesoDenegado);
-    expect(d.tieneDependencias).not.toHaveBeenCalled();
-    expect(d.eliminar).not.toHaveBeenCalled();
   });
 
   it('lanza 400 si tiene pedidos o repartidores asociados', async () => {
     const d = crearDependencias();
     d.buscarPorIdConZonas.mockResolvedValue(vistaCentro());
-    d.estaAutorizado.mockResolvedValue(true);
     d.tieneDependencias.mockResolvedValue(true);
 
-    await expect(d.caso.execute(1, 5)).rejects.toBeInstanceOf(
+    await expect(d.caso.execute(1)).rejects.toBeInstanceOf(
       ReglaDeNegocioViolada,
     );
     expect(d.eliminar).not.toHaveBeenCalled();
@@ -91,11 +76,10 @@ describe('EliminarCentroUseCase', () => {
   it('elimina y devuelve la vista previa con zonas', async () => {
     const d = crearDependencias();
     d.buscarPorIdConZonas.mockResolvedValue(vistaCentro());
-    d.estaAutorizado.mockResolvedValue(true);
     d.tieneDependencias.mockResolvedValue(false);
     d.eliminar.mockResolvedValue(undefined);
 
-    const resultado = await d.caso.execute(1, 5);
+    const resultado = await d.caso.execute(1);
 
     expect(d.eliminar).toHaveBeenCalledWith(1);
     expect(resultado.id).toBe(1);

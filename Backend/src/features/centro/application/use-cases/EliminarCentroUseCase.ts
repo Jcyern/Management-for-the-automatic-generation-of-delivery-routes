@@ -1,5 +1,4 @@
 import {
-  AccesoDenegado,
   RecursoNoEncontrado,
   ReglaDeNegocioViolada,
 } from '../../../../shared/domain/DomainError.js';
@@ -17,16 +16,10 @@ export class EliminarCentroUseCase {
     this.query = query;
   }
 
-  async execute(id: number, userId: number): Promise<CentroOutput> {
+  async execute(id: number): Promise<CentroOutput> {
     const vista = await this.query.buscarPorIdConZonas(id);
     if (!vista) {
       throw new RecursoNoEncontrado('Centro', id);
-    }
-
-    if (!(await this.repo.estaAutorizado(id, userId))) {
-      throw new AccesoDenegado(
-        'No estás autorizado para gestionar este centro de distribución.',
-      );
     }
 
     if (await this.repo.tieneDependencias(id)) {

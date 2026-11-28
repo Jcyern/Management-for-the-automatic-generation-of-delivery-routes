@@ -7,6 +7,7 @@ import { RoleRoute } from './components/RoleRoute';
 import { Home } from './features/dashboard/pages/Home/Home';
 import { PedidosList } from './features/pedidos/pages/PedidosList/PedidosList';
 import { ZonasList } from './features/zonas/pages/ZonasList/ZonasList';
+import { CentrosList } from './features/centros/pages/CentrosList/CentrosList';
 import { RutasList } from './features/rutas/pages/RutasList/RutasList';
 
 /**
@@ -84,8 +85,8 @@ function AppRoutes() {
         <Route
           path="/dashboard/centros"
           element={
-            <RoleRoute allowedRoles={['admin', 'supervisor']}>
-              <div>Página de Centros (por implementar)</div>
+            <RoleRoute allowedRoles={['admin', 'supervisor', 'logistico']}>
+              <CentrosList />
             </RoleRoute>
           }
         />

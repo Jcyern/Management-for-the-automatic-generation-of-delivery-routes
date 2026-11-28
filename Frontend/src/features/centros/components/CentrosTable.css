@@ -1,0 +1,134 @@
+.centros-table-wrapper {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.centros-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.centros-table thead {
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.centros-table th {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.centros-table tbody tr {
+  border-bottom: 1px solid #edf2f7;
+  transition: background 0.12s;
+}
+
+.centros-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.centros-table tbody tr:hover {
+  background: #f7fff7;
+}
+
+.centros-table td {
+  padding: 0.85rem 1rem;
+  color: #2d3748;
+  vertical-align: middle;
+}
+
+.centros-table .cell-id {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #4a5568;
+  width: 80px;
+}
+
+.centros-table .cell-nombre {
+  font-weight: 600;
+  color: #292f36;
+  white-space: nowrap;
+}
+
+.centros-table .cell-ubicacion {
+  color: #4a5568;
+  max-width: 240px;
+}
+
+.centros-table .cell-coords {
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.centros-table .cell-muted {
+  color: #a0aec0;
+}
+
+.centros-table .cell-zonas {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.centros-table .zona-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #e6fffa;
+  color: #2c7a7b;
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.centros-table .cell-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.centros-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #718096;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.centros-icon-button:hover {
+  background: #edf2f7;
+  color: #2d3748;
+}
+
+.centros-icon-button--danger:hover {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.centros-table-empty {
+  padding: 3rem;
+  text-align: center;
+  color: #718096;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}

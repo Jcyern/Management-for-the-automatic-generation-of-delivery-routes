@@ -135,6 +135,7 @@ export class PrismaCentroRepository
         OR: [
           { coordinadorCrearRutas: { some: { idUser: userId } } },
           { coordinadorValidadRutas: { some: { idUser: userId } } },
+          { repartidores: { some: { idUser: userId } } },
         ],
       },
       select: { id: true },
@@ -171,6 +172,7 @@ export class PrismaCentroRepository
         OR: [
           { coordinadorCrearRutas: { some: { idUser: userId } } },
           { coordinadorValidadRutas: { some: { idUser: userId } } },
+          { repartidores: { some: { idUser: userId } } },
         ],
       },
       include: { zonas: { select: { id: true, nombre: true } } },

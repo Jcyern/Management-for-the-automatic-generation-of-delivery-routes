@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
-  AccesoDenegado,
   Conflicto,
   RecursoNoEncontrado,
 } from '../../../../shared/domain/DomainError.js';
@@ -38,7 +37,6 @@ function crearDependencias({
   resultadoGeo = { latitud: 10, longitud: 20 },
 }: Opciones = {}) {
   const buscarPorId = vi.fn();
-  const estaAutorizado = vi.fn();
   const existeNombre = vi.fn();
   const actualizar = vi.fn();
   const buscarPorIdConZonas = vi.fn();
@@ -49,7 +47,7 @@ function crearDependencias({
     actualizar,
     buscarPorId,
     existeNombre,
-    estaAutorizado,
+    estaAutorizado: vi.fn(),
     tieneDependencias: vi.fn(),
     eliminar: vi.fn(),
   };
@@ -63,7 +61,6 @@ function crearDependencias({
   return {
     caso: new ActualizarCentroUseCase(repo, query, geo),
     buscarPorId,
-    estaAutorizado,
     existeNombre,
     actualizar,
     buscarPorIdConZonas,
@@ -76,31 +73,18 @@ describe('ActualizarCentroUseCase', () => {
     const d = crearDependencias();
     d.buscarPorId.mockResolvedValue(null);
 
-    await expect(d.caso.execute(1, { nombre: 'X' }, 5)).rejects.toBeInstanceOf(
+    await expect(d.caso.execute(1, { nombre: 'X' })).rejects.toBeInstanceOf(
       RecursoNoEncontrado,
     );
-    expect(d.estaAutorizado).not.toHaveBeenCalled();
-  });
-
-  it('lanza 403 si el usuario no está autorizado', async () => {
-    const d = crearDependencias();
-    d.buscarPorId.mockResolvedValue(centroActual());
-    d.estaAutorizado.mockResolvedValue(false);
-
-    await expect(d.caso.execute(1, { nombre: 'X' }, 5)).rejects.toBeInstanceOf(
-      AccesoDenegado,
-    );
-    expect(d.actualizar).not.toHaveBeenCalled();
   });
 
   it('lanza 409 si el nuevo nombre ya existe', async () => {
     const d = crearDependencias();
     d.buscarPorId.mockResolvedValue(centroActual());
-    d.estaAutorizado.mockResolvedValue(true);
     d.existeNombre.mockResolvedValue(true);
 
     await expect(
-      d.caso.execute(1, { nombre: 'Otro centro' }, 5),
+      d.caso.execute(1, { nombre: 'Otro centro' }),
     ).rejects.toBeInstanceOf(Conflicto);
     expect(d.actualizar).not.toHaveBeenCalled();
     expect(d.geocodificar).not.toHaveBeenCalled();
@@ -109,16 +93,14 @@ describe('ActualizarCentroUseCase', () => {
   it('renombra y cambia el programa', async () => {
     const d = crearDependencias();
     d.buscarPorId.mockResolvedValue(centroActual());
-    d.estaAutorizado.mockResolvedValue(true);
     d.existeNombre.mockResolvedValue(false);
     d.actualizar.mockResolvedValue(centroActual());
     d.buscarPorIdConZonas.mockResolvedValue(vistaCentro());
 
-    await d.caso.execute(
-      1,
-      { nombre: '  Centro Sur  ', programaLogistico: 'Programa B' },
-      5,
-    );
+    await d.caso.execute(1, {
+      nombre: '  Centro Sur  ',
+      programaLogistico: 'Programa B',
+    });
 
     const entidad = d.actualizar.mock.calls[0]?.[0] as Centro;
     expect(entidad.nombre).toBe('Centro Sur');
@@ -129,11 +111,10 @@ describe('ActualizarCentroUseCase', () => {
   it('con solo coordenadas conserva la dirección actual', async () => {
     const d = crearDependencias();
     d.buscarPorId.mockResolvedValue(centroActual());
-    d.estaAutorizado.mockResolvedValue(true);
     d.actualizar.mockResolvedValue(centroActual());
     d.buscarPorIdConZonas.mockResolvedValue(vistaCentro());
 
-    await d.caso.execute(1, { latitud: 10, longitud: 20 }, 5);
+    await d.caso.execute(1, { latitud: 10, longitud: 20 });
 
     const entidad = d.actualizar.mock.calls[0]?.[0] as Centro;
     expect(entidad.direccion).toBe('Calle 1');
@@ -147,11 +128,10 @@ describe('ActualizarCentroUseCase', () => {
       resultadoGeo: { latitud: 11, longitud: 21 },
     });
     d.buscarPorId.mockResolvedValue(centroActual());
-    d.estaAutorizado.mockResolvedValue(true);
     d.actualizar.mockResolvedValue(centroActual());
     d.buscarPorIdConZonas.mockResolvedValue(vistaCentro());
 
-    await d.caso.execute(1, { direccion: 'Calle Nueva' }, 5);
+    await d.caso.execute(1, { direccion: 'Calle Nueva' });
 
     const entidad = d.actualizar.mock.calls[0]?.[0] as Centro;
     expect(entidad.direccion).toBe('Calle Nueva');
@@ -163,11 +143,10 @@ describe('ActualizarCentroUseCase', () => {
   it('reemplaza las zonas cuando se envían zonasIds', async () => {
     const d = crearDependencias();
     d.buscarPorId.mockResolvedValue(centroActual());
-    d.estaAutorizado.mockResolvedValue(true);
     d.actualizar.mockResolvedValue(centroActual());
     d.buscarPorIdConZonas.mockResolvedValue(vistaCentro());
 
-    await d.caso.execute(1, { zonasIds: [20, 21] }, 5);
+    await d.caso.execute(1, { zonasIds: [20, 21] });
 
     const entidad = d.actualizar.mock.calls[0]?.[0] as Centro;
     expect(entidad.zonasIds).toEqual([20, 21]);
@@ -176,11 +155,10 @@ describe('ActualizarCentroUseCase', () => {
   it('no toca ubicación ni zonas si no se envían', async () => {
     const d = crearDependencias();
     d.buscarPorId.mockResolvedValue(centroActual());
-    d.estaAutorizado.mockResolvedValue(true);
     d.actualizar.mockResolvedValue(centroActual());
     d.buscarPorIdConZonas.mockResolvedValue(vistaCentro());
 
-    await d.caso.execute(1, {}, 5);
+    await d.caso.execute(1, {});
 
     const entidad = d.actualizar.mock.calls[0]?.[0] as Centro;
     expect(entidad.direccion).toBe('Calle 1');
@@ -192,11 +170,10 @@ describe('ActualizarCentroUseCase', () => {
   it('devuelve 404 defensivo si no puede releer tras actualizar', async () => {
     const d = crearDependencias();
     d.buscarPorId.mockResolvedValue(centroActual());
-    d.estaAutorizado.mockResolvedValue(true);
     d.actualizar.mockResolvedValue(centroActual());
     d.buscarPorIdConZonas.mockResolvedValue(null);
 
-    await expect(d.caso.execute(1, {}, 5)).rejects.toBeInstanceOf(
+    await expect(d.caso.execute(1, {})).rejects.toBeInstanceOf(
       RecursoNoEncontrado,
     );
   });
