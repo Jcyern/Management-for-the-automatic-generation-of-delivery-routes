@@ -107,7 +107,8 @@ export function CentrosList() {
         <div>
           <h1>Centros</h1>
           <p className="centros-list-subtitle">
-            {centros.length} centros registrados
+            {centros.length}{' '}
+            {canManageCentros ? 'centros registrados' : 'centros asignados'}
           </p>
         </div>
 
